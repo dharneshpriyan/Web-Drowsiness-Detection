@@ -1,0 +1,68 @@
+{% extends "base.html" %} {% block content %}
+<main class="layout page-enter auth-page">
+  <section class="auth-shell card">
+    <div class="auth-showcase">
+      <p class="eyebrow">Driver Registration</p>
+      <h1 class="auth-title">Create your account to start safe monitoring.</h1>
+      <p class="lead">
+        Register your driver profile to access browser-based drowsiness
+        detection, live monitoring tools, and alert configuration.
+      </p>
+
+      <div class="auth-highlight-grid">
+        <article class="auth-highlight-card">
+          <span>Quick Registration</span>
+          <strong>Simple account setup with driver profile details</strong>
+        </article>
+        <article class="auth-highlight-card">
+          <span>Smart Access</span>
+          <strong>Sign in later to launch monitoring in a few seconds</strong>
+        </article>
+      </div>
+
+      <div class="auth-stats">
+        <div class="auth-stat">
+          <strong>3</strong>
+          <span>Basic details needed</span>
+        </div>
+        <div class="auth-stat">
+          <strong>Fast</strong>
+          <span>Ready in under a minute</span>
+        </div>
+        <div class="auth-stat">
+          <strong>Secure</strong>
+          <span>Driver-based login workflow</span>
+        </div>
+      </div>
+    </div>
+
+    <article class="auth-card">
+      <div class="auth-card-glow"></div>
+      <p class="eyebrow">Driver Sign Up</p>
+      <h2>Create Account</h2>
+      <p class="section-text">Enter your driver details to register for access.</p>
+
+      <form method="post" action="{{ url_for('signup') }}" class="auth-form">
+        <label for="signupName">Driver Name</label>
+        <input id="signupName" type="text" name="name" placeholder="Enter your full name" required />
+
+        <label for="signupMobile">Mobile Number</label>
+        <input id="signupMobile" type="text" name="mobile" placeholder="Enter your mobile number" required />
+
+        <label for="signupAge">Age</label>
+        <input id="signupAge" type="number" name="age" placeholder="Enter your age" required />
+
+        <button class="btn btn-primary auth-submit" type="submit">Sign Up</button>
+      </form>
+
+      <div class="auth-divider">
+        <span></span>
+        <p>Already registered?</p>
+        <span></span>
+      </div>
+
+      <a class="btn btn-secondary auth-secondary" href="{{ url_for('login') }}">Go To Login</a>
+    </article>
+  </section>
+</main>
+{% endblock %}

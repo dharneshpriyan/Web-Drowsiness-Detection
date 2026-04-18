@@ -1,0 +1,210 @@
+{% extends "base.html" %} {% block content %}
+<main class="layout page-enter admin-page">
+  <section class="page-hero card">
+    <div>
+      <p class="eyebrow">Admin Control Center</p>
+      <h1>Detection analytics, tuning, and platform controls.</h1>
+    </div>
+    <div class="team-pills">
+      <span class="page-badge">Theme: {{ admin_settings.theme|title }}</span>
+      <span class="page-badge">Events: {{ analytics_chart|length }}</span>
+    </div>
+  </section>
+
+  <section class="admin-summary-grid">
+    <article class="card metric-card admin-stat-card">
+      <span>Drowsy Events</span>
+      <strong>{{ status_counts.DROWSY }}</strong>
+      <p>Detected eye-closure incidents recorded in analytics history.</p>
+    </article>
+    <article class="card metric-card admin-stat-card">
+      <span>Yawning Events</span>
+      <strong>{{ status_counts.YAWNING }}</strong>
+      <p>Logged yawn observations across recent processed sessions.</p>
+    </article>
+    <article class="card metric-card admin-stat-card">
+      <span>Distraction Events</span>
+      <strong>{{ status_counts.DISTRACTED }}</strong>
+      <p>Head-pose distraction events captured by the detector.</p>
+    </article>
+    <article class="card metric-card admin-stat-card">
+      <span>Registered Drivers</span>
+      <strong>{{ user_summary.total_users }}</strong>
+      <p>Total driver accounts currently stored in the platform.</p>
+    </article>
+  </section>
+
+  <section class="content-band">
+    <article class="card showcase-copy admin-chart-card">
+      <p class="eyebrow">Graph View</p>
+      <h2>Recent detection timeline</h2>
+      <p>Visualize the latest event attention scores from the analytics log.</p>
+      <canvas id="analyticsChart" height="190"></canvas>
+    </article>
+
+    <article class="card form-card admin-settings-card">
+      <p class="eyebrow">Detection Controls</p>
+      <h3>Runtime Settings</h3>
+      <p class="section-text">Tune thresholds, timing, visuals, and theme behavior.</p>
+      <form method="post" action="{{ url_for('save_admin_detection_settings') }}" class="admin-settings-form">
+        <label>Eye Threshold (EAR)</label>
+        <input type="number" step="0.01" name="ear_threshold" value="{{ admin_settings.ear_threshold }}" required />
+
+        <label>Mouth Threshold (MAR)</label>
+        <input type="number" step="0.01" name="mar_threshold" value="{{ admin_settings.mar_threshold }}" required />
+
+        <label>Head Threshold</label>
+        <input type="number" step="1" name="head_threshold" value="{{ admin_settings.head_threshold }}" required />
+
+        <label>Eye Closure Seconds</label>
+        <input type="number" step="0.1" name="eye_drowsy_seconds" value="{{ admin_settings.eye_drowsy_seconds }}" required />
+
+        <label>Alarm Delay Seconds</label>
+        <input type="number" step="0.1" name="alarm_delay" value="{{ admin_settings.alarm_delay }}" required />
+
+        <label>WhatsApp Alert After</label>
+        <input type="number" step="1" name="whatsapp_alert_repeat_count" value="{{ admin_settings.whatsapp_alert_repeat_count }}" required />
+
+        <label>Theme Control</label>
+        <select name="theme">
+          <option value="oceanic" {% if admin_settings.theme == 'oceanic' %}selected{% endif %}>Oceanic</option>
+          <option value="emerald" {% if admin_settings.theme == 'emerald' %}selected{% endif %}>Emerald</option>
+          <option value="sunset" {% if admin_settings.theme == 'sunset' %}selected{% endif %}>Sunset</option>
+          <option value="violet" {% if admin_settings.theme == 'violet' %}selected{% endif %}>Violet</option>
+          <option value="graphite" {% if admin_settings.theme == 'graphite' %}selected{% endif %}>Graphite</option>
+          <option value="arctic" {% if admin_settings.theme == 'arctic' %}selected{% endif %}>Arctic</option>
+        </select>
+
+        <label class="admin-toggle"><input type="checkbox" name="show_landmarks" {% if admin_settings.show_landmarks %}checked{% endif %} /> Show eye landmarks</label>
+        <label class="admin-toggle"><input type="checkbox" name="auto_start_monitor" {% if admin_settings.auto_start_monitor %}checked{% endif %} /> Auto-start monitoring mode</label>
+        <label class="admin-toggle"><input type="checkbox" name="enable_background_animation" {% if admin_settings.enable_background_animation %}checked{% endif %} /> Enable background animation</label>
+
+        <button class="btn btn-primary btn-premium" type="submit">Save Admin Settings</button>
+      </form>
+    </article>
+  </section>
+
+  <section class="content-band">
+    <article class="card feature-rail">
+      <p class="eyebrow">Analytics Report</p>
+      <div class="rail-item">
+        <span>Current behavior</span>
+        <strong>Drowsiness begins after {{ admin_settings.eye_drowsy_seconds }} second(s) of continuous eye closure.</strong>
+      </div>
+      <div class="rail-item">
+        <span>Visual mode</span>
+        <strong>{% if admin_settings.show_landmarks %}Landmarks visible in monitor feed.{% else %}Landmarks hidden for a cleaner feed.{% endif %}</strong>
+      </div>
+      <div class="rail-item">
+        <span>Theme profile</span>
+        <strong>{{ admin_settings.theme|title }} theme is active across the interface.</strong>
+      </div>
+      <div class="rail-item">
+        <span>Alert escalation</span>
+        <strong>WhatsApp alert sends after {{ admin_settings.whatsapp_alert_repeat_count }} drowsy event(s).</strong>
+      </div>
+      <div class="rail-item">
+        <span>Background motion</span>
+        <strong>{% if admin_settings.enable_background_animation %}Animated background is enabled.{% else %}Background animation is disabled.{% endif %}</strong>
+      </div>
+      <div class="showcase-actions">
+        <a class="btn btn-secondary hero-btn hero-btn-download" href="{{ url_for('export_admin_analytics') }}">
+          Export Analytics JSON
+        </a>
+      </div>
+      <form method="post" action="{{ url_for('reset_admin_analytics') }}">
+        <button class="btn btn-secondary hero-btn hero-btn-story" type="submit">Reset Analytics History</button>
+      </form>
+    </article>
+
+    <article class="card showcase-copy admin-table-card">
+      <p class="eyebrow">Recent Results</p>
+      <h2>Latest event report</h2>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Status</th>
+              <th>Driver</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if analytics_events %}
+              {% for event in analytics_events %}
+              <tr>
+                <td>{{ event.timestamp }}</td>
+                <td>{{ event.status }}</td>
+                <td>{{ event.driver_name }}</td>
+                <td>{{ event.attention_score }}%</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="4">No analytics events have been recorded yet.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <section class="content-band">
+    <article class="card showcase-copy admin-table-card">
+      <p class="eyebrow">Recent Drivers</p>
+      <h2>Registered user overview</h2>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Mobile</th>
+              <th>Age</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if user_summary.recent_users %}
+              {% for user in user_summary.recent_users %}
+              <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.mobile }}</td>
+                <td>{{ user.age }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="3">No registered users found yet.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card feature-rail">
+      <p class="eyebrow">Extra Features</p>
+      <div class="rail-item">
+        <span>Theme studio</span>
+        <strong>Switch between six admin-controlled visual themes for the full application.</strong>
+      </div>
+      <div class="rail-item">
+        <span>Analytics export</span>
+        <strong>Download raw analytics history for external reporting or archiving.</strong>
+      </div>
+      <div class="rail-item">
+        <span>Runtime tuning</span>
+        <strong>Control thresholds, timing, alert repeat count, and animated environment settings.</strong>
+      </div>
+    </article>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+window.adminAnalytics = {{ analytics_chart|tojson }};
+</script>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="page-enter inner-page">
+    <section class="page-hero card">
+        <div>
+            <p class="eyebrow">About Project</p>
+            <h1>Web Drowsiness Detection System</h1>
+            <p class="lead">
+                A final-year computer science project focused on real-time driver monitoring
+                through computer vision, behavior analysis, and safety-first alert workflows.
+            </p>
+        </div>
+        <div class="page-badge">Research + Product Style Presentation</div>
+    </section>
+
+    <section class="detail-grid">
+        <article class="card detail-card">
+            <p class="eyebrow">Mission</p>
+            <h3>Improve road safety through live fatigue awareness.</h3>
+            <p>
+                The system watches for prolonged eye closure, yawning, and distraction patterns,
+                then presents a simple operator-friendly status with alarm support and escalation options.
+            </p>
+        </article>
+        <article class="card detail-card">
+            <p class="eyebrow">Academic Context</p>
+            <h3>Final year engineering project</h3>
+            <p>
+                Built as a professional presentation of computer vision concepts, real-time inference,
+                and human safety monitoring in a practical application scenario.
+            </p>
+        </article>
+    </section>
+
+    <section class="content-band">
+        <article class="card narrative-card">
+            <p class="eyebrow">Institution</p>
+            <h2>Sri Raaja Raajan College of Engineering & Technology</h2>
+            <p class="college">CSE Final Year Project</p>
+            <div class="about-team-list">
+                {% for member in team_members %}
+                    <article class="team-member-card about-team-card">
+                        <span class="team-member-role">Student {{ loop.index }}</span>
+                        <strong>{{ member }}</strong>
+                    </article>
+                {% endfor %}
+            </div>
+        </article>
+        <article class="card screenshot-stage preview-stage">
+            <div class="preview-window">
+                <div class="preview-toolbar">
+                    <span class="preview-dot"></span>
+                    <span class="preview-dot"></span>
+                    <span class="preview-dot"></span>
+                </div>
+                <div class="preview-grid">
+                    <div class="preview-panel preview-panel-large">
+                        <span class="preview-label">System Snapshot</span>
+                        <strong>Real-time monitoring architecture</strong>
+                        <div class="preview-wave"></div>
+                    </div>
+                    <div class="preview-panel">
+                        <span class="preview-label">Alerts</span>
+                        <strong>Enabled</strong>
+                    </div>
+                    <div class="preview-panel">
+                        <span class="preview-label">Deploy</span>
+                        <strong>Web + Desktop</strong>
+                    </div>
+                    <div class="preview-panel preview-panel-wide">
+                        <span class="preview-label">Core Modules</span>
+                        <strong>OpenCV, MediaPipe, Flask, Analytics</strong>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </section>
+</main>
+{% endblock %}

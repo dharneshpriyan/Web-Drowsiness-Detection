@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="page-enter inner-page">
+    <section class="page-hero card">
+        <div>
+            <p class="eyebrow">Features</p>
+            <h1>Detection, monitoring, and operator workflow features.</h1>
+            <p class="lead">This page focuses only on what the system can do, without crowding the home page.</p>
+        </div>
+        <div class="page-badge">Dedicated Feature Page</div>
+    </section>
+
+    <section class="feature-page-grid">
+        <article class="card feature-panel">
+            <p class="eyebrow">Vision Layer</p>
+            <h3>Facial landmark based monitoring</h3>
+            <ul class="feature-list">
+                <li>Real-time face landmark detection using MediaPipe Face Mesh</li>
+                <li>Eye Aspect Ratio based drowsiness analysis</li>
+                <li>Mouth Aspect Ratio based yawn detection</li>
+                <li>Head pose and yaw-based distraction detection</li>
+            </ul>
+        </article>
+        <article class="card feature-panel">
+            <p class="eyebrow">Alert Layer</p>
+            <h3>Immediate and escalated response</h3>
+            <ul class="feature-list">
+                <li>Audio alarm support for unsafe states</li>
+                <li>Attention score tracking from 0 to 100</li>
+                <li>WhatsApp owner alert after repeated drowsiness events</li>
+                <li>Driver profile details stored for alert context</li>
+            </ul>
+        </article>
+        <article class="card feature-panel">
+            <p class="eyebrow">Experience Layer</p>
+            <h3>Professional web interface</h3>
+            <ul class="feature-list">
+                <li>Multi-page navigation for project presentation</li>
+                <li>Camera source configuration from the browser</li>
+                <li>Live monitor dashboard with streamed frames</li>
+                <li>Animated premium UI with responsive layout</li>
+            </ul>
+        </article>
+    </section>
+</main>
+{% endblock %}

@@ -1,0 +1,306 @@
+{% extends "base.html" %} {% block content %}
+<main class="layout page-enter">
+  <section class="hero hero-home card">
+    <div class="hero-copy">
+      <p class="eyebrow">Premium Web Control Center</p>
+      <h1 class="hero-title">
+        Build a real-world driver safety system with live AI monitoring.
+      </h1>
+      <p class="lead">
+        A browser-based monitoring platform for drowsiness detection using
+        facial landmarks, EAR, MAR, head pose analysis, operator settings, and
+        real-time alert workflows.
+      </p>
+
+      <div class="hero-kpis">
+        <article class="kpi-card">
+          <span>Computer Vision</span>
+          <strong>OpenCV + MediaPipe</strong>
+        </article>
+        <article class="kpi-card">
+          <span>Core Signals</span>
+          <strong>EAR &bull; MAR &bull; Head Pose</strong>
+        </article>
+        <article class="kpi-card">
+          <span>Deployment</span>
+          <strong>Web Dashboard + Live Feed</strong>
+        </article>
+      </div>
+
+      <div class="cta-row">
+        <a
+          class="btn btn-primary hero-btn hero-btn-start"
+          href="{{ url_for('monitor') }}"
+          data-loading-target="{{ url_for('monitor') }}"
+          >Start Detection</a
+        >
+        <a class="btn btn-secondary hero-btn hero-btn-story" href="{{ url_for('about') }}"
+          >View Project Story</a
+        >
+        <a class="btn btn-secondary hero-btn hero-btn-download" href="{{ url_for('download_page') }}"
+          >Download App</a
+        >
+      </div>
+
+      <div class="settings-launch-row">
+        <button class="btn btn-secondary hero-btn hero-btn-camera" type="button" data-settings-target="camera-settings">
+          Connect Camera
+        </button>
+        <button class="btn btn-secondary hero-btn hero-btn-alert" type="button" data-settings-target="whatsapp-alert">
+          WhatsApp Alert
+        </button>
+      </div>
+
+      <div class="hero-links">
+        <a class="quick-link card" href="{{ url_for('features') }}">
+          <span>Explore Features</span>
+          <strong>Detection capabilities and operator tools</strong>
+        </a>
+        <a class="quick-link card" href="{{ url_for('system') }}">
+          <span>System Architecture</span>
+          <strong>Camera pipeline, logic flow, and alerts</strong>
+        </a>
+      </div>
+    </div>
+
+    <aside class="hero-panel hero-panel-home">
+      <div class="signal-orb">
+        <div class="signal-ring ring-a"></div>
+        <div class="signal-ring ring-b"></div>
+        <div class="logo-wrap">
+          <img
+            src="{{ url_for('serve_assets', filename='logo.png') }}"
+            alt="Project logo"
+          />
+        </div>
+      </div>
+
+      <div class="panel-copy">
+        <p class="eyebrow">Project Identity</p>
+        <h3>Web Drowsiness Detection</h3>
+        <p>Final Year Project | Computer Vision | Safety Monitoring</p>
+        <p class="college">
+          Sri Raaja Raajan College of Engineering & Technology
+        </p>
+      </div>
+
+      <div class="team-strip">
+        <div class="team-strip-head">
+          <span>Project Team</span>
+          <small>Core Builders</small>
+        </div>
+        <div class="team-pills team-pills-grid">
+          {% for member in team_members %}
+          <article class="team-member-card">
+            <span class="team-member-role">Team Member {{ loop.index }}</span>
+            <strong>{{ member }}</strong>
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="showcase-grid">
+    <article class="card showcase-copy">
+      <p class="eyebrow">Professional Workflow</p>
+      <h2>
+        Operator setup, controlled launch, live diagnostics, and alert handling.
+      </h2>
+      <p>
+        The website now behaves like a product dashboard instead of a single
+        demo page. Each major section lives on its own route, while the home
+        page focuses on launch, setup, and presentation.
+      </p>
+      <div class="showcase-actions">
+        <a class="btn btn-secondary" href="{{ url_for('about') }}"
+          >About Page</a
+        >
+        <a class="btn btn-secondary" href="{{ url_for('features') }}"
+          >Features Page</a
+        >
+        <a class="btn btn-secondary" href="{{ url_for('system') }}"
+          >System Page</a
+        >
+      </div>
+    </article>
+    <article class="card screenshot-stage preview-stage">
+      <div class="preview-window">
+        <div class="preview-toolbar">
+          <span class="preview-dot"></span>
+          <span class="preview-dot"></span>
+          <span class="preview-dot"></span>
+        </div>
+        <div class="preview-grid">
+          <div class="preview-panel preview-panel-large">
+            <span class="preview-label">Live Monitoring</span>
+            <strong>Driver attention pipeline active</strong>
+            <div class="preview-wave"></div>
+          </div>
+          <div class="preview-panel">
+            <span class="preview-label">EAR</span>
+            <strong>0.24</strong>
+          </div>
+          <div class="preview-panel">
+            <span class="preview-label">Attention</span>
+            <strong>92%</strong>
+          </div>
+          <div class="preview-panel preview-panel-wide">
+            <span class="preview-label">Detection Stack</span>
+            <strong>Camera -> Face Mesh -> Logic -> Alert</strong>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="shots">
+    <article class="card screenshot-card">
+      <div class="shot-copy">
+        <p class="eyebrow">Monitoring View</p>
+        <h3>Live detection interface</h3>
+      </div>
+      <img
+        src="{{ url_for('serve_screenshots', filename='camera.png') }}"
+        alt="Camera screenshot"
+      />
+    </article>
+    <article class="card feature-rail">
+      <p class="eyebrow">Highlights</p>
+      <div class="rail-item">
+        <span>Real-time drowsiness detection</span>
+        <strong>Continuous landmark tracking and alert logic.</strong>
+      </div>
+      <div class="rail-item">
+        <span>Attention scoring</span>
+        <strong>Simple visual signal for operator awareness.</strong>
+      </div>
+      <div class="rail-item">
+        <span>Web-first experience</span>
+        <strong
+          >Browser pages for setup, project details, and monitoring.</strong
+        >
+      </div>
+    </article>
+  </section>
+</main>
+
+<div class="settings-modal-backdrop" id="settingsModalBackdrop" hidden>
+  <div class="settings-modal-shell">
+    <article class="card form-card settings-modal settings-panel is-hidden" id="camera-settings" data-settings-panel="camera-settings" role="dialog" aria-modal="true" aria-labelledby="cameraSettingsTitle">
+      <button class="settings-modal-close" type="button" data-settings-close aria-label="Close camera settings">
+        &times;
+      </button>
+      <div class="panel-shine"></div>
+      <p class="eyebrow">Connect Camera</p>
+      <h3 id="cameraSettingsTitle">Camera Source</h3>
+      <p class="section-text">Choose the default source for live monitoring.</p>
+      <form method="post" action="{{ url_for('save_camera_settings') }}">
+        <input
+          type="hidden"
+          name="camera_mode"
+          id="cameraModeInput"
+          value="{% if is_laptop_camera %}laptop{% else %}external{% endif %}"
+        />
+
+        <div class="option-switch" data-switch-root data-input-id="cameraModeInput">
+          <button
+            type="button"
+            class="option-pill {% if is_laptop_camera %}active{% endif %}"
+            data-switch-value="laptop"
+          >
+            <span class="option-pill-title">Laptop Camera</span>
+            <span class="option-pill-copy">Use the system webcam directly.</span>
+          </button>
+          <button
+            type="button"
+            class="option-pill {% if not is_laptop_camera %}active{% endif %}"
+            data-switch-value="external"
+          >
+            <span class="option-pill-title">External Stream</span>
+            <span class="option-pill-copy">Use IP camera or streaming URL.</span>
+          </button>
+        </div>
+
+        <div class="premium-input-wrap" id="externalSourceWrap">
+          <label>External Camera URL</label>
+          <input
+            type="text"
+            name="external_source"
+            value="{{ external_source }}"
+            placeholder="http://192.168.1.5:8080/video"
+          />
+          <p class="field-note">Example: IP Webcam or DVR feed URL.</p>
+        </div>
+
+        <button class="btn btn-primary btn-premium" type="submit">
+          Save Camera Source
+        </button>
+      </form>
+    </article>
+
+    <article class="card form-card settings-modal settings-panel is-hidden" id="whatsapp-alert" data-settings-panel="whatsapp-alert" role="dialog" aria-modal="true" aria-labelledby="whatsappSettingsTitle">
+      <button class="settings-modal-close" type="button" data-settings-close aria-label="Close WhatsApp settings">
+        &times;
+      </button>
+      <div class="panel-shine"></div>
+      <p class="eyebrow">WhatsApp Alert</p>
+      <h3 id="whatsappSettingsTitle">Owner Notification</h3>
+      <p class="section-text">
+        Configure escalation when repeated drowsiness is detected.
+      </p>
+      <form method="post" action="{{ url_for('save_whatsapp_settings') }}">
+        <input
+          type="hidden"
+          name="enabled"
+          id="whatsappEnabledInput"
+          value="{% if alert_data.enabled %}on{% else %}off{% endif %}"
+        />
+
+        <div class="option-switch" data-switch-root data-input-id="whatsappEnabledInput">
+          <button
+            type="button"
+            class="option-pill {% if alert_data.enabled %}active{% endif %}"
+            data-switch-value="on"
+          >
+            <span class="option-pill-title">Alerts On</span>
+            <span class="option-pill-copy">Send escalation after repeated drowsiness.</span>
+          </button>
+          <button
+            type="button"
+            class="option-pill {% if not alert_data.enabled %}active{% endif %}"
+            data-switch-value="off"
+          >
+            <span class="option-pill-title">Alerts Off</span>
+            <span class="option-pill-copy">Keep monitoring without WhatsApp escalation.</span>
+          </button>
+        </div>
+
+        <div class="premium-input-wrap">
+          <label>WhatsApp Number</label>
+          <input
+            type="text"
+            name="owner_whatsapp"
+            value="{{ alert_data.owner_whatsapp }}"
+            placeholder="Example: 919876543210"
+          />
+          <p class="field-note">Include country code with no spaces.</p>
+        </div>
+
+        <button class="btn btn-primary btn-premium" type="submit">Save Alert Settings</button>
+      </form>
+    </article>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay" hidden>
+  <div class="loading-card">
+    <p class="eyebrow">Initializing Web Drowsiness Detection</p>
+    <h3 id="loadingPercent">0%</h3>
+    <div class="loading-bar">
+      <span id="loadingFill"></span>
+    </div>
+    <p id="loadingStatus">Preparing modules...</p>
+  </div>
+</div>
+{% endblock %}

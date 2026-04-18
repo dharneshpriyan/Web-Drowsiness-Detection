@@ -1,0 +1,42 @@
+{% extends "base.html" %} {% block content %}
+<main class="layout page-enter auth-page">
+  <section class="auth-shell card">
+    <div class="auth-showcase">
+      <p class="eyebrow">Administrator Access</p>
+      <h1 class="auth-title">Control detection logic, themes, and analytics.</h1>
+      <p class="lead">
+        Sign in as the project administrator to manage monitoring rules,
+        visualize event history, and configure the overall experience.
+      </p>
+
+      <div class="auth-highlight-grid">
+        <article class="auth-highlight-card">
+          <span>Detection Controls</span>
+          <strong>Fine-tune thresholds, timing, and landmark display</strong>
+        </article>
+        <article class="auth-highlight-card">
+          <span>Operational Insights</span>
+          <strong>Review event history, counts, and recent alert activity</strong>
+        </article>
+      </div>
+    </div>
+
+    <article class="auth-card">
+      <div class="auth-card-glow"></div>
+      <p class="eyebrow">Admin Login</p>
+      <h2>Administrator Panel</h2>
+      <p class="section-text">Use the administrator credentials to continue.</p>
+
+      <form method="post" action="{{ url_for('admin_login') }}" class="auth-form">
+        <label for="adminUsername">Username</label>
+        <input id="adminUsername" type="text" name="username" placeholder="Enter admin username" required />
+
+        <label for="adminPassword">Password</label>
+        <input id="adminPassword" type="password" name="password" placeholder="Enter admin password" required />
+
+        <button class="btn btn-primary auth-submit" type="submit">Open Admin Panel</button>
+      </form>
+    </article>
+  </section>
+</main>
+{% endblock %}

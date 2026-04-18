@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      {{ page_title or "Web Drowsiness Detection" }} | Web Drowsiness Detection
+    </title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='site.css') }}"
+    />
+  </head>
+  <body class="theme-{{ active_theme or 'oceanic' }} {% if not background_animation_enabled %}bg-motion-off{% endif %}">
+    <div class="bg-scene" aria-hidden="true">
+      <div class="bg-aurora bg-aurora-a"></div>
+      <div class="bg-aurora bg-aurora-b"></div>
+      <div class="bg-aurora bg-aurora-c"></div>
+      <div class="bg-orbit bg-orbit-a"></div>
+      <div class="bg-orbit bg-orbit-b"></div>
+      <div class="bg-line-field"></div>
+      <div class="bg-particles"></div>
+    </div>
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+    <div class="ambient ambient-c"></div>
+    <div class="grid-noise"></div>
+    <div class="page-shell">
+      <header class="topbar" id="topbar">
+        <a class="brand-lockup" href="{{ url_for('index') }}">
+          <span class="brand-mark"></span>
+          <span>
+            <strong>Web Drowsiness Detection</strong>
+            <small>Real-Time Driver Monitoring System</small>
+          </span>
+        </a>
+
+        <nav class="nav">
+          <a
+            class="{% if active_page == 'home' %}active{% endif %}"
+            href="{{ url_for('index') }}"
+            >Home</a
+          >
+          <a
+            class="{% if active_page == 'about' %}active{% endif %}"
+            href="{{ url_for('about') }}"
+            >About</a
+          >
+          <a
+            class="{% if active_page == 'features' %}active{% endif %}"
+            href="{{ url_for('features') }}"
+            >Features</a
+          >
+          <a
+            class="{% if active_page == 'system' %}active{% endif %}"
+            href="{{ url_for('system') }}"
+            >System</a
+          >
+          <a
+            class="{% if active_page == 'download' %}active{% endif %}"
+            href="{{ url_for('download_page') }}"
+            >Download</a
+          >
+          <a
+            class="{% if active_page == 'admin' %}active{% endif %}"
+            href="{% if is_admin %}{{ url_for('admin_dashboard') }}{% else %}{{ url_for('admin_login') }}{% endif %}"
+            >Admin</a
+          >
+          {% if session.user %}
+          <span class="nav-user">Welcome, {{ session.user.name }}</span>
+          <form
+            method="post"
+            action="{{ url_for('logout') }}"
+            class="nav-form"
+          >
+            <button type="submit" class="nav-ghost-btn">Logout</button>
+          </form>
+          {% else %}
+          <a href="{{ url_for('login') }}">Login</a>
+          <a href="{{ url_for('signup') }}">Sign Up</a>
+          {% endif %}
+        </nav>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category or 'info' }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %} {% block content %}{% endblock %}
+    </div>
+    {% block scripts %}{% endblock %}
+    <script src="{{ url_for('static', filename='site.js') }}"></script>
+  </body>
+</html>

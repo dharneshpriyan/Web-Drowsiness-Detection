@@ -1,0 +1,65 @@
+{% extends "base.html" %} {% block content %}
+<main class="layout page-enter auth-page">
+  <section class="auth-shell card">
+    <div class="auth-showcase">
+      <p class="eyebrow">Secure Driver Access</p>
+      <h1 class="auth-title">Log in to launch live drowsiness monitoring.</h1>
+      <p class="lead">
+        Access the monitoring dashboard, driver safety controls, and real-time
+        detection tools with your registered driver account.
+      </p>
+
+      <div class="auth-highlight-grid">
+        <article class="auth-highlight-card">
+          <span>Live Tracking</span>
+          <strong>Browser camera detection with real-time status</strong>
+        </article>
+        <article class="auth-highlight-card">
+          <span>Smart Alerts</span>
+          <strong>EAR, MAR, head pose, and escalation workflow</strong>
+        </article>
+      </div>
+
+      <div class="auth-stats">
+        <div class="auth-stat">
+          <strong>24/7</strong>
+          <span>Safety-ready access</span>
+        </div>
+        <div class="auth-stat">
+          <strong>AI</strong>
+          <span>Vision-driven monitoring</span>
+        </div>
+        <div class="auth-stat">
+          <strong>Web</strong>
+          <span>Fast launch from any browser</span>
+        </div>
+      </div>
+    </div>
+
+    <article class="auth-card">
+      <div class="auth-card-glow"></div>
+      <p class="eyebrow">Driver Login</p>
+      <h2>Access Account</h2>
+      <p class="section-text">Enter your registered driver name and mobile number.</p>
+
+      <form method="post" action="{{ url_for('login') }}" class="auth-form">
+        <label for="loginName">Driver Name</label>
+        <input id="loginName" type="text" name="name" placeholder="Enter your full name" required />
+
+        <label for="loginMobile">Mobile Number</label>
+        <input id="loginMobile" type="text" name="mobile" placeholder="Enter your mobile number" required />
+
+        <button class="btn btn-primary auth-submit" type="submit">Log In</button>
+      </form>
+
+      <div class="auth-divider">
+        <span></span>
+        <p>New to the system?</p>
+        <span></span>
+      </div>
+
+      <a class="btn btn-secondary auth-secondary" href="{{ url_for('signup') }}">Create Driver Account</a>
+    </article>
+  </section>
+</main>
+{% endblock %}

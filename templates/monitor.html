@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="monitor-page page-enter">
+    <section class="monitor-topbar card">
+        <div class="monitor-headline">
+            <p class="eyebrow">Web Drowsiness Detection</p>
+            <h1>Live Monitoring Dashboard</h1>
+            <p class="monitor-subtext">Real-time driver state tracking with live video, alert status, and core safety metrics.</p>
+        </div>
+        <div class="status-wrap">
+            <span class="live-pill"><span class="live-dot"></span>LIVE</span>
+            <button class="btn btn-secondary" id="fullscreenBtn" type="button">Enter Fullscreen</button>
+            <a class="btn btn-secondary" href="{{ url_for('index') }}">Back Home</a>
+        </div>
+    </section>
+
+    <section class="monitor-layout">
+        <article class="monitor-video card" id="monitorStage">
+            <div class="camera-top-overlay">
+                <div class="camera-brand">
+                    <div>
+                        <p class="camera-title">Web Drowsiness Detection</p>
+                        <p class="camera-status-line" id="statusLine">STATUS: ACTIVE</p>
+                    </div>
+                </div>
+                <div class="camera-live">
+                    <span class="live-dot"></span>
+                    <span>LIVE</span>
+                </div>
+            </div>
+
+            <div class="monitor-browser-banner" id="cameraBanner" hidden>
+                <strong id="cameraBannerTitle">Camera Setup Required</strong>
+                <p id="cameraBannerMessage">Allow camera access to begin live monitoring in the browser.</p>
+                <button class="btn btn-primary monitor-retry-btn" id="startCameraBtn" type="button">Start Camera</button>
+            </div>
+
+            <img id="videoFeed" alt="Live monitoring feed">
+            <video id="cameraSource" autoplay muted playsinline hidden></video>
+            <canvas id="frameCapture" hidden></canvas>
+
+            <div class="video-alert" id="videoAlert">DROWSINESS ALERT</div>
+
+            <div class="driver-float-card">
+                <div class="driver-float-left">
+                    <span class="float-label">DRIVER</span>
+                    <strong id="driverValue">Not Set</strong>
+                </div>
+                <div class="driver-float-right">
+                    <span class="float-label">ATTENTION</span>
+                    <strong id="attentionValue">100%</strong>
+                </div>
+                <div class="attention-track">
+                    <span id="attentionFill"></span>
+                </div>
+            </div>
+
+            <button class="exit-monitor-btn" type="button" onclick="window.location.href='{{ url_for('index') }}'">EXIT</button>
+
+            <div class="camera-bottom-band"></div>
+            <div class="bottom-metrics-pill">
+                <span>FPS: <strong id="fpsValue">0</strong></span>
+                <span>EAR: <strong id="earValue">0.00</strong></span>
+                <span>Yawn: <strong id="marValue">0.00</strong></span>
+            </div>
+        </article>
+
+        <aside class="monitor-sidebar">
+            <article class="card metric-card metric-card-hero">
+                <span>Status</span>
+                <strong id="statusValue">ACTIVE</strong>
+                <p>Current interpreted driver state from the detection engine.</p>
+                <div class="status-chip-row">
+                    <span id="statusBadge" class="status-badge active">ACTIVE</span>
+                    <span class="status-time" id="monitorClock">--:--:--</span>
+                </div>
+            </article>
+            <article class="card metric-card">
+                <span>Detection State</span>
+                <strong id="stateLabel">Monitoring Stable</strong>
+                <p id="stateDescription">The detector is tracking face landmarks and awaiting abnormal behavior.</p>
+            </article>
+            <article class="card metric-card">
+                <span>Attention Range</span>
+                <strong id="attentionBand">Excellent</strong>
+                <p>Composite score derived from eye, mouth, and head behavior.</p>
+            </article>
+            <article class="card metric-card monitor-note">
+                <span>System Note</span>
+                <strong>Monitoring Active</strong>
+                <p>The browser dashboard is using the existing Python detector and streaming processed frames live.</p>
+            </article>
+        </aside>
+    </section>
+</main>
+
+<audio id="alarmAudio" preload="auto" loop>
+    <source src="{{ url_for('serve_assets', filename='alarm.wav') }}" type="audio/wav">
+</audio>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.monitorConfig = {
+    startUrl: "{{ url_for('api_start_monitor') }}",
+    stopUrl: "{{ url_for('api_stop_monitor') }}",
+    statusUrl: "{{ url_for('api_status') }}",
+    frameUrl: "{{ url_for('api_frame') }}"
+};
+</script>
+{% endblock %}
