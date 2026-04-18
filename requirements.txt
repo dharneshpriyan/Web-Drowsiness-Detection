@@ -1,3 +1,4 @@
+PYTHON_VERSION=3.11.11
 Flask==3.0.3
 mediapipe==0.10.14
 numpy==1.26.4
