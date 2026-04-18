@@ -1031,22 +1031,22 @@ def serve_screenshots(filename):
     return send_from_directory(SCREENSHOTS_DIR, filename)
 
 
-# @app.get("/download/windows")
-# def download_windows_installer():
-#     windows_dir = DOWNLOAD_DIR / "windows"
-#     return send_from_directory(
-#         windows_dir,
-#         "AI_Drowsiness_Detection_Setup.exe",
-#         as_attachment=True,
-#     )
-
-
-
 @app.get("/download/windows")
 def download_windows_installer():
-    return redirect("https://drive.usercontent.google.com/download?id=1kpZwSBmg7tRCUPfHDOHBE0Js61xyu0cY&export=download&authuser=0&confirm=t&uuid=827e3a66-812a-45b2-8ca0-441b1a6e681e&at=ALBwUgl9skC0U4vsqsizmvmnrkfF%3A1776531080241")
+    windows_dir = DOWNLOAD_DIR / "windows"
+    return send_from_directory(
+        windows_dir,
+        "AI_Drowsiness_Detection_Setup.exe",
+        as_attachment=True,
+    )
+
+
+
+# @app.get("/download/windows")
+# def download_windows_installer():
+#     return redirect("https://drive.usercontent.google.com/download?id=1kpZwSBmg7tRCUPfHDOHBE0Js61xyu0cY&export=download&authuser=0&confirm=t&uuid=827e3a66-812a-45b2-8ca0-441b1a6e681e&at=ALBwUgl9skC0U4vsqsizmvmnrkfF%3A1776531080241")
 
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False, threaded=True)
