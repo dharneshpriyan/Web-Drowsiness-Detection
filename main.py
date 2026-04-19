@@ -95,8 +95,8 @@ def default_admin_settings():
         "ear_threshold": 0.23,
         "mar_threshold": 0.65,
         "head_threshold": 20,
-        "eye_drowsy_seconds": 1.5,
-        "alarm_delay": 0.5,
+        "eye_drowsy_seconds": 1.0,
+        "alarm_delay": 0.0,
         "theme": "oceanic",
         "auto_start_monitor": False,
         "show_landmarks": True,
@@ -107,7 +107,12 @@ def default_admin_settings():
 
 def load_admin_settings():
     settings = default_admin_settings()
-    settings.update(load_json(admin_settings_file(), {}))
+    stored_settings = load_json(admin_settings_file(), {})
+    settings.update(stored_settings)
+    if stored_settings.get("eye_drowsy_seconds") == 1.5:
+        settings["eye_drowsy_seconds"] = 1.0
+    if stored_settings.get("alarm_delay") == 0.5:
+        settings["alarm_delay"] = 0.0
     return settings
 
 
@@ -141,8 +146,8 @@ class DetectorEngine:
         self.MAR_THRESH = 0.65
         self.HEAD_THRESH = 20
         self.FRAME_LIMIT = 20
-        self.ALARM_DELAY = 0.5
-        self.EYE_DROWSY_SECONDS = 1.5
+        self.ALARM_DELAY = 0.0
+        self.EYE_DROWSY_SECONDS = 1.0
 
         self.cap = None
         self.prev = time.time()
@@ -212,8 +217,8 @@ class DetectorEngine:
         self.EAR_THRESH = float(settings.get("ear_threshold", 0.23))
         self.MAR_THRESH = float(settings.get("mar_threshold", 0.65))
         self.HEAD_THRESH = float(settings.get("head_threshold", 20))
-        self.EYE_DROWSY_SECONDS = float(settings.get("eye_drowsy_seconds", 1.5))
-        self.ALARM_DELAY = float(settings.get("alarm_delay", 0.5))
+        self.EYE_DROWSY_SECONDS = float(settings.get("eye_drowsy_seconds", 1.0))
+        self.ALARM_DELAY = float(settings.get("alarm_delay", 0.0))
         self.show_landmarks = bool(settings.get("show_landmarks", True))
 
     def send_whatsapp_alert(self):
@@ -542,9 +547,11 @@ class DetectorEngine:
                 if self.eye_closed_started_at is not None
                 else 0.0
             )
+            min_closed_frames_for_alert = max(4, int(max(self.fps, 10) * 0.35))
             early_drowsy_seconds = max(0.7, self.EYE_DROWSY_SECONDS * 0.55)
             strong_drowsy_signal = (
                 eye_closed_duration >= early_drowsy_seconds
+                and self.eye_closed_frames >= max(3, min_closed_frames_for_alert - 1)
                 and (
                     self.yawn_frames >= 2
                     or self.head_frames >= max(4, self.FRAME_LIMIT // 3)
@@ -552,8 +559,12 @@ class DetectorEngine:
                 )
             )
             distraction_limit = max(8, self.FRAME_LIMIT // 2)
+            eye_closure_confirmed = (
+                eye_closed_duration >= self.EYE_DROWSY_SECONDS
+                and self.eye_closed_frames >= min_closed_frames_for_alert
+            )
 
-            if eye_closed_duration >= self.EYE_DROWSY_SECONDS or strong_drowsy_signal:
+            if eye_closure_confirmed or strong_drowsy_signal:
                 self.status = "DROWSY"
                 self.alert_active = True
             elif self.yawn_frames >= 2:
@@ -942,8 +953,8 @@ def save_admin_detection_settings():
         "ear_threshold": max(0.1, min(0.5, float(request.form.get("ear_threshold", 0.23)))),
         "mar_threshold": max(0.3, min(1.2, float(request.form.get("mar_threshold", 0.65)))),
         "head_threshold": max(5.0, min(45.0, float(request.form.get("head_threshold", 20)))),
-        "eye_drowsy_seconds": max(0.5, min(5.0, float(request.form.get("eye_drowsy_seconds", 1.5)))),
-        "alarm_delay": max(0.0, min(3.0, float(request.form.get("alarm_delay", 0.5)))),
+        "eye_drowsy_seconds": max(0.5, min(5.0, float(request.form.get("eye_drowsy_seconds", 1.0)))),
+        "alarm_delay": max(0.0, min(3.0, float(request.form.get("alarm_delay", 0.0)))),
         "whatsapp_alert_repeat_count": max(1, min(10, int(request.form.get("whatsapp_alert_repeat_count", 3)))),
         "theme": request.form.get("theme", "oceanic").strip() or "oceanic",
         "auto_start_monitor": request.form.get("auto_start_monitor") == "on",
