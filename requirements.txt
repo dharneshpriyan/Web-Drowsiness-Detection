@@ -1,6 +1,6 @@
 Flask
 gunicorn
-mediapipe
+mediapipe==0.10.14
 numpy
 opencv-python-headless
 requests
