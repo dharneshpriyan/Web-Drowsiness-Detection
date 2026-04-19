@@ -492,10 +492,6 @@
 
     const isMobileViewport = () => window.matchMedia("(max-width: 760px)").matches;
 
-    const syncMobileMonitorMode = () => {
-        document.body.classList.toggle("monitor-mobile", isMobileViewport());
-    };
-
     const isSecureOrigin = () => (
         window.isSecureContext ||
         window.location.hostname === "localhost" ||
@@ -763,7 +759,7 @@
                 {
                     audio: false,
                     video: {
-                        facingMode: { exact: "user" },
+                        facingMode: { ideal: "user" },
                         width: { ideal: 960 },
                         height: { ideal: 540 },
                         frameRate: { ideal: 20, max: 24 },
@@ -904,12 +900,9 @@
     }
 
     updateClock();
-    syncMobileMonitorMode();
     setInterval(updateClock, 1000);
     loadInitialStatus();
     startBrowserCamera();
-
-    window.addEventListener("resize", syncMobileMonitorMode);
 
     window.addEventListener("beforeunload", () => {
         unlockOrientation();

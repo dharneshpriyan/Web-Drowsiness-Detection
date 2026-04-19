@@ -411,7 +411,6 @@ class DetectorEngine:
         self.fps = 1 / time_diff if time_diff > 0 else 0
         self.prev = current
 
-        frame = cv2.flip(frame, 1)
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         result = self.face_mesh.process(rgb)
         if from_browser:
