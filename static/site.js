@@ -298,8 +298,8 @@
     let browserStream = null;
     let frameLoopTimer = null;
     let frameRequestInFlight = false;
-    let adaptiveCaptureWidth = 420;
-    let adaptiveDelay = 160;
+    let adaptiveCaptureWidth = 460;
+    let adaptiveDelay = 110;
     let smoothedRoundTrip = 0;
     let lastCanvasWidth = 0;
     let lastCanvasHeight = 0;
@@ -701,13 +701,13 @@
             ? roundTripMs
             : (smoothedRoundTrip * 0.72) + (roundTripMs * 0.28);
 
-        if (smoothedRoundTrip > 240 && adaptiveCaptureWidth > 320) {
-            adaptiveCaptureWidth = Math.max(320, adaptiveCaptureWidth - 40);
-        } else if (smoothedRoundTrip < 130 && adaptiveCaptureWidth < 520) {
-            adaptiveCaptureWidth = Math.min(520, adaptiveCaptureWidth + 40);
+        if (smoothedRoundTrip > 250 && adaptiveCaptureWidth > 360) {
+            adaptiveCaptureWidth = Math.max(360, adaptiveCaptureWidth - 40);
+        } else if (smoothedRoundTrip < 120 && adaptiveCaptureWidth < 560) {
+            adaptiveCaptureWidth = Math.min(560, adaptiveCaptureWidth + 40);
         }
 
-        adaptiveDelay = Math.max(120, Math.min(240, Math.round(smoothedRoundTrip * 0.65)));
+        adaptiveDelay = Math.max(80, Math.min(170, Math.round(smoothedRoundTrip * 0.42)));
     };
 
     const sendFrameToBackend = async () => {
@@ -715,7 +715,7 @@
             return;
         }
         if (frameRequestInFlight || !browserStream || cameraSource.readyState < 2) {
-            queueNextFrame(100);
+            queueNextFrame(70);
             return;
         }
 
@@ -738,7 +738,7 @@
         frameCapture.toBlob(async (blob) => {
             if (!blob) {
                 frameRequestInFlight = false;
-                queueNextFrame(110);
+                queueNextFrame(85);
                 return;
             }
 
@@ -805,18 +805,18 @@
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 360 },
-                        height: { ideal: 270 },
-                        frameRate: { ideal: 10, max: 12 },
+                        width: { ideal: 480 },
+                        height: { ideal: 360 },
+                        frameRate: { ideal: 15, max: 18 },
                     },
                 },
                 {
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 320 },
-                        height: { ideal: 240 },
-                        frameRate: { ideal: 8, max: 10 },
+                        width: { ideal: 360 },
+                        height: { ideal: 270 },
+                        frameRate: { ideal: 12, max: 15 },
                     },
                 },
                 {
@@ -831,9 +831,9 @@
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 420 },
-                        height: { ideal: 315 },
-                        frameRate: { ideal: 12, max: 15 },
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        frameRate: { ideal: 18, max: 24 },
                     },
                 },
             ];
@@ -918,7 +918,7 @@
             await waitForCameraFrame();
             setCameraPreviewMode(true);
             hideCameraBanner();
-            queueNextFrame(isMobileViewport() ? 150 : 120);
+            queueNextFrame(isMobileViewport() ? 90 : 70);
         } catch (error) {
             console.error(error);
             if (stateLabel) {

@@ -183,17 +183,20 @@ class DetectorEngine:
         self.drowsy_event_count = 0
         self.previous_drowsy_state = False
         self.whatsapp_alert_sent = False
-        self.ear_buffer = deque(maxlen=10)
-        self.mar_buffer = deque(maxlen=10)
+        self.ear_buffer = deque(maxlen=5)
+        self.mar_buffer = deque(maxlen=5)
         self.ear_history = deque(maxlen=60)
         self.mar_history = deque(maxlen=60)
         self.attention_history = deque(maxlen=60)
+        self.ear_reference_buffer = deque(maxlen=45)
         self.eye_closed_frames = 0
         self.head_frames = 0
+        self.yawn_frames = 0
         self.eye_closed_started_at = None
         self.attention_score = 100
         self.ear_avg = 0.0
         self.mar_avg = 0.0
+        self.dynamic_ear_threshold = self.EAR_THRESH
         self.yaw = 0.0
         self.status = "ACTIVE"
         self.alert_active = False
@@ -435,7 +438,7 @@ class DetectorEngine:
         processing_frame = frame
         processing_scale = 1.0
         frame_height, frame_width = frame.shape[:2]
-        max_processing_width = 360 if from_browser else 640
+        max_processing_width = 420 if from_browser else 640
         if frame_width > max_processing_width:
             processing_scale = max_processing_width / float(frame_width)
             processing_frame = cv2.resize(
@@ -482,18 +485,34 @@ class DetectorEngine:
             ) / 2
             mar = self.compute_MAR(lm)
 
+            if ear > self.EAR_THRESH * 1.08 and mar < self.MAR_THRESH * 0.95:
+                self.ear_reference_buffer.append(ear)
+
+            if self.ear_reference_buffer:
+                baseline_ear = float(np.median(self.ear_reference_buffer))
+                self.dynamic_ear_threshold = max(
+                    self.EAR_THRESH * 0.9,
+                    min(self.EAR_THRESH * 1.35, baseline_ear * 0.78),
+                )
+            else:
+                self.dynamic_ear_threshold = self.EAR_THRESH
+
             self.ear_buffer.append(ear)
             self.mar_buffer.append(mar)
             self.ear_avg = float(np.mean(self.ear_buffer)) if self.ear_buffer else 0.0
             self.mar_avg = float(np.mean(self.mar_buffer)) if self.mar_buffer else 0.0
 
             should_refresh_head_pose = (
-                not from_browser or self.browser_frame_count % 3 == 0
+                not from_browser or self.browser_frame_count % 2 == 0
             )
             if should_refresh_head_pose:
                 _, self.yaw, _ = self.head_pose(frame, lm)
 
-            if self.ear_avg < self.EAR_THRESH:
+            eyes_look_closed = (
+                self.ear_avg < self.dynamic_ear_threshold
+                and ear < self.dynamic_ear_threshold * 1.08
+            )
+            if eyes_look_closed:
                 if self.eye_closed_started_at is None:
                     self.eye_closed_started_at = current
                 self.eye_closed_frames += 1
@@ -504,12 +523,14 @@ class DetectorEngine:
             self.head_frames = (
                 self.head_frames + 1 if abs(self.yaw) > self.HEAD_THRESH else 0
             )
+            self.yawn_frames = (
+                self.yawn_frames + 1 if self.mar_avg > self.MAR_THRESH else 0
+            )
 
             self.attention_score = 100
-            self.attention_score -= min(40, self.eye_closed_frames * 2)
-            self.attention_score -= min(30, self.head_frames * 2)
-            if self.mar_avg > self.MAR_THRESH:
-                self.attention_score -= 30
+            self.attention_score -= min(55, self.eye_closed_frames * 4)
+            self.attention_score -= min(25, self.head_frames * 3)
+            self.attention_score -= min(20, self.yawn_frames * 4)
             self.attention_score = max(0, self.attention_score)
 
             self.ear_history.append(self.ear_avg)
@@ -521,19 +542,30 @@ class DetectorEngine:
                 if self.eye_closed_started_at is not None
                 else 0.0
             )
+            early_drowsy_seconds = max(0.7, self.EYE_DROWSY_SECONDS * 0.55)
+            strong_drowsy_signal = (
+                eye_closed_duration >= early_drowsy_seconds
+                and (
+                    self.yawn_frames >= 2
+                    or self.head_frames >= max(4, self.FRAME_LIMIT // 3)
+                    or self.attention_score <= 45
+                )
+            )
+            distraction_limit = max(8, self.FRAME_LIMIT // 2)
 
-            if eye_closed_duration >= self.EYE_DROWSY_SECONDS:
+            if eye_closed_duration >= self.EYE_DROWSY_SECONDS or strong_drowsy_signal:
                 self.status = "DROWSY"
                 self.alert_active = True
-            elif self.mar_avg > self.MAR_THRESH:
+            elif self.yawn_frames >= 2:
                 self.status = "YAWNING"
-            elif self.head_frames > self.FRAME_LIMIT:
+            elif self.head_frames >= distraction_limit:
                 self.status = "DISTRACTED"
 
             if self.status != "ACTIVE":
                 if self.alert_start_time is None:
                     self.alert_start_time = time.time()
-                if time.time() - self.alert_start_time < self.ALARM_DELAY:
+                effective_alarm_delay = 0.0 if strong_drowsy_signal else self.ALARM_DELAY
+                if time.time() - self.alert_start_time < effective_alarm_delay:
                     self.alert_active = False
             else:
                 self.alert_start_time = None
