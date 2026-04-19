@@ -1860,8 +1860,21 @@ img {
 .monitor-video:-ms-fullscreen img,
 .monitor-video.monitor-video-mobile-fullscreen img {
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     border-radius: 0;
+}
+
+.monitor-video video.preview-active,
+.monitor-video.monitor-video-mobile-fullscreen video.preview-active {
+    position: absolute;
+    inset: 0;
+    display: block !important;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    z-index: 1;
+    background: #000;
 }
 
 .camera-top-overlay {
@@ -1958,6 +1971,10 @@ img {
 
 body.monitor-mobile-fullscreen {
     overflow: hidden;
+}
+
+#videoFeed.preview-hidden {
+    opacity: 0;
 }
 
 .monitor-browser-banner strong {

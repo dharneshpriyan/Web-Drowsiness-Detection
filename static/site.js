@@ -327,6 +327,73 @@
         }
     };
 
+    const lockLandscapeOrientation = async () => {
+        if (!isMobileViewport() || !screen.orientation || !screen.orientation.lock) {
+            return;
+        }
+        try {
+            await screen.orientation.lock("landscape");
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const unlockOrientation = () => {
+        if (!screen.orientation || !screen.orientation.unlock) {
+            return;
+        }
+        try {
+            screen.orientation.unlock();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const setCameraPreviewMode = (showRawPreview) => {
+        if (!cameraSource || !videoFeed) {
+            return;
+        }
+        cameraSource.classList.toggle("preview-active", showRawPreview);
+        cameraSource.hidden = !showRawPreview;
+        videoFeed.classList.toggle("preview-hidden", showRawPreview);
+    };
+
+    const waitForCameraFrame = async (timeoutMs = 4000) => {
+        if (!cameraSource) {
+            return;
+        }
+        if (cameraSource.readyState >= 2 && cameraSource.videoWidth > 0 && cameraSource.videoHeight > 0) {
+            return;
+        }
+
+        await new Promise((resolve, reject) => {
+            let settled = false;
+            const handleReady = () => {
+                if (settled || cameraSource.readyState < 2 || cameraSource.videoWidth === 0) {
+                    return;
+                }
+                settled = true;
+                window.clearTimeout(timeoutId);
+                cameraSource.removeEventListener("loadedmetadata", handleReady);
+                cameraSource.removeEventListener("canplay", handleReady);
+                resolve();
+            };
+
+            const timeoutId = window.setTimeout(() => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                cameraSource.removeEventListener("loadedmetadata", handleReady);
+                cameraSource.removeEventListener("canplay", handleReady);
+                reject(new Error("Timed out while waiting for the camera preview."));
+            }, timeoutMs);
+
+            cameraSource.addEventListener("loadedmetadata", handleReady);
+            cameraSource.addEventListener("canplay", handleReady);
+        });
+    };
+
     const requestMonitorFullscreen = async () => {
         if (!monitorStage) {
             return false;
@@ -377,7 +444,15 @@
     if (fullscreenBtn && monitorStage) {
         fullscreenBtn.addEventListener("click", async () => {
             try {
-                if (mobileFullscreenFallback) {
+                if (isMobileViewport()) {
+                    if (mobileFullscreenFallback) {
+                        setMobileFullscreenFallback(false);
+                        unlockOrientation();
+                    } else {
+                        setMobileFullscreenFallback(true);
+                        await lockLandscapeOrientation();
+                    }
+                } else if (mobileFullscreenFallback) {
                     setMobileFullscreenFallback(false);
                 } else if (getFullscreenElement()) {
                     const exited = await exitMonitorFullscreen();
@@ -583,6 +658,7 @@
             browserStream.getTracks().forEach((track) => track.stop());
             browserStream = null;
         }
+        setCameraPreviewMode(false);
         if (!preserveStartingState) {
             startingCamera = false;
             if (startCameraBtn) {
@@ -655,6 +731,7 @@
                 tuneCaptureProfile(performance.now() - requestStartedAt);
                 if (data.ok) {
                     hideCameraBanner();
+                    setCameraPreviewMode(false);
                     if (videoFeed) {
                         videoFeed.src = `data:image/jpeg;base64,${data.frame}`;
                     }
@@ -682,7 +759,7 @@
                 {
                     audio: false,
                     video: {
-                        facingMode: { ideal: "user" },
+                        facingMode: { exact: "user" },
                         width: { ideal: 960 },
                         height: { ideal: 540 },
                         frameRate: { ideal: 20, max: 24 },
@@ -695,6 +772,12 @@
                         width: { ideal: 640 },
                         height: { ideal: 480 },
                         frameRate: { ideal: 15, max: 20 },
+                    },
+                },
+                {
+                    audio: false,
+                    video: {
+                        facingMode: "user",
                     },
                 },
             ]
@@ -710,10 +793,12 @@
                 },
             ];
 
-        baseProfiles.push(
-            { audio: false, video: { facingMode: { ideal: "user" } } },
-            { audio: false, video: true },
-        );
+        if (!mobile) {
+            baseProfiles.push(
+                { audio: false, video: { facingMode: { ideal: "user" } } },
+                { audio: false, video: true },
+            );
+        }
 
         return baseProfiles;
     };
@@ -779,7 +864,13 @@
 
             browserStream = stream;
             cameraSource.srcObject = browserStream;
+            cameraSource.muted = true;
+            cameraSource.autoplay = true;
+            cameraSource.setAttribute("playsinline", "true");
+            cameraSource.setAttribute("webkit-playsinline", "true");
             await cameraSource.play();
+            await waitForCameraFrame();
+            setCameraPreviewMode(true);
             hideCameraBanner();
             queueNextFrame(isMobileViewport() ? 110 : 80);
         } catch (error) {
@@ -814,6 +905,7 @@
     startBrowserCamera();
 
     window.addEventListener("beforeunload", () => {
+        unlockOrientation();
         stopBrowserStream();
         navigator.sendBeacon(window.monitorConfig.stopUrl);
     });
