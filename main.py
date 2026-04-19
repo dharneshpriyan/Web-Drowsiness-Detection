@@ -987,6 +987,14 @@ def api_frame():
                 }
             )
     except Exception as exc:
+        app.logger.exception("Frame processing failed while handling browser camera upload.")
+        latest_metrics.update(
+            {
+                "camera_ready": False,
+                "camera_error": f"Frame processing failed: {exc}",
+                "updated_at": time.time(),
+            }
+        )
         return jsonify({"ok": False, "error": f"Frame processing failed: {exc}"}), 500
 
 

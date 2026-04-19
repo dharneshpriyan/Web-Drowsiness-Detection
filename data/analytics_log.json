@@ -229,5 +229,38 @@
         "ear": 0.137,
         "mar": 0.024,
         "yaw": 0.0
+    },
+    {
+        "timestamp": "2026-04-19 08:46:45",
+        "status": "DROWSY",
+        "driver_name": "Janarthanan",
+        "driver_mobile": "9080706050",
+        "driver_age": "21",
+        "attention_score": 82,
+        "ear": 0.125,
+        "mar": 0.004,
+        "yaw": 0.0
+    },
+    {
+        "timestamp": "2026-04-19 08:46:49",
+        "status": "DROWSY",
+        "driver_name": "Janarthanan",
+        "driver_mobile": "9080706050",
+        "driver_age": "21",
+        "attention_score": 82,
+        "ear": 0.121,
+        "mar": 0.008,
+        "yaw": 0.0
+    },
+    {
+        "timestamp": "2026-04-19 08:46:55",
+        "status": "DROWSY",
+        "driver_name": "Janarthanan",
+        "driver_mobile": "9080706050",
+        "driver_age": "21",
+        "attention_score": 84,
+        "ear": 0.199,
+        "mar": 0.007,
+        "yaw": 0.0
     }
 ]

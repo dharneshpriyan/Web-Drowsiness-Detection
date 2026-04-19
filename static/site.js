@@ -727,17 +727,41 @@
                     body: formData,
                     cache: "no-store",
                 });
-                const data = await response.json();
+                const responseText = await response.text();
+                let data = null;
+
+                try {
+                    data = responseText ? JSON.parse(responseText) : null;
+                } catch (parseError) {
+                    data = {
+                        ok: false,
+                        error: responseText || "The server returned an invalid response while processing camera frames.",
+                    };
+                }
+
                 tuneCaptureProfile(performance.now() - requestStartedAt);
-                if (data.ok) {
+                if (response.ok && data && data.ok) {
                     hideCameraBanner();
                     setCameraPreviewMode(false);
                     if (videoFeed) {
                         videoFeed.src = `data:image/jpeg;base64,${data.frame}`;
                     }
                     applyMonitorData(data);
-                } else if (stateDescription) {
-                    stateDescription.textContent = data.error || "Unable to process camera frames.";
+                } else {
+                    const errorMessage = (data && data.error)
+                        ? data.error
+                        : "Unable to process camera frames.";
+                    if (stateLabel) {
+                        stateLabel.textContent = "Backend Processing Error";
+                    }
+                    if (stateDescription) {
+                        stateDescription.textContent = errorMessage;
+                    }
+                    setCameraBanner(
+                        "Detection Backend Error",
+                        errorMessage,
+                        true,
+                    );
                 }
             } catch (error) {
                 console.error(error);
