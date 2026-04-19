@@ -151,13 +151,33 @@ class DetectorEngine:
         self.reset_runtime_state()
         self.apply_admin_settings(load_admin_settings())
 
-        self.mp_face_mesh = mp.solutions.face_mesh
+        self.mp_face_mesh = self._load_face_mesh_module()
         self.face_mesh = self.mp_face_mesh.FaceMesh(
             max_num_faces=1,
             refine_landmarks=True,
             min_detection_confidence=0.7,
             min_tracking_confidence=0.7,
         )
+
+    def _load_face_mesh_module(self):
+        if hasattr(mp, "solutions") and hasattr(mp.solutions, "face_mesh"):
+            return mp.solutions.face_mesh
+
+        try:
+            from mediapipe.python.solutions import face_mesh as fallback_face_mesh
+
+            return fallback_face_mesh
+        except Exception as exc:
+            mp_file = getattr(mp, "__file__", "unknown")
+            mp_version = getattr(mp, "__version__", "unknown")
+            available_attrs = ", ".join(sorted(attr for attr in dir(mp) if not attr.startswith("_"))[:25])
+            raise RuntimeError(
+                "MediaPipe Face Mesh import failed. "
+                f"module_file={mp_file}; module_version={mp_version}; "
+                f"has_solutions={hasattr(mp, 'solutions')}; "
+                f"available_attrs={available_attrs or 'none'}; "
+                f"fallback_error={exc}"
+            ) from exc
 
     def reset_runtime_state(self):
         self.drowsy_event_count = 0
