@@ -357,6 +357,7 @@
     let smoothedRoundTrip = 0;
     let lastCanvasWidth = 0;
     let lastCanvasHeight = 0;
+    let lastWhatsappAlertEventCount = 0;
     let startingCamera = false;
     let mobileFullscreenFallback = false;
     let audioUnlocked = false;
@@ -750,6 +751,23 @@
         frameLoopTimer = window.setTimeout(sendFrameToBackend, delay);
     };
 
+    const handleWhatsappAlert = (alertPayload) => {
+        if (!alertPayload || !alertPayload.url) {
+            return;
+        }
+
+        const eventCount = Number(alertPayload.event_count || 0);
+        if (eventCount > 0 && eventCount <= lastWhatsappAlertEventCount) {
+            return;
+        }
+        lastWhatsappAlertEventCount = eventCount;
+
+        const popup = window.open(alertPayload.url, "_blank", "noopener,noreferrer");
+        if (!popup) {
+            window.location.href = alertPayload.url;
+        }
+    };
+
     const tuneCaptureProfile = (roundTripMs) => {
         smoothedRoundTrip = smoothedRoundTrip === 0
             ? roundTripMs
@@ -822,6 +840,7 @@
                     hideCameraBanner();
                     setCameraPreviewMode(true);
                     applyMonitorData(data);
+                    handleWhatsappAlert(data.whatsapp_alert);
                 } else {
                     const errorMessage = (data && data.error)
                         ? data.error

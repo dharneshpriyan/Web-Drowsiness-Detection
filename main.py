@@ -191,7 +191,8 @@ class DetectorEngine:
     def reset_runtime_state(self):
         self.drowsy_event_count = 0
         self.previous_drowsy_state = False
-        self.whatsapp_alert_sent = False
+        self.last_whatsapp_alert_event_count = 0
+        self.pending_browser_whatsapp_alert = None
         self.ear_buffer = deque(maxlen=5)
         self.mar_buffer = deque(maxlen=5)
         self.ear_history = deque(maxlen=60)
@@ -224,23 +225,26 @@ class DetectorEngine:
         self.EYE_DROWSY_SECONDS = float(settings.get("eye_drowsy_seconds", 1.0))
         self.ALARM_DELAY = float(settings.get("alarm_delay", 0.0))
         self.show_landmarks = bool(settings.get("show_landmarks", True))
+        self.whatsapp_alert_repeat_count = max(
+            1, int(settings.get("whatsapp_alert_repeat_count", 3))
+        )
 
-    def send_whatsapp_alert(self):
+    def send_whatsapp_alert(self, from_browser=False):
         alert_data = load_json(
             alert_config_file(),
             {"enabled": True, "owner_whatsapp": ""},
         )
         if not alert_data.get("enabled", True):
-            return False
+            return {"ok": False, "reason": "disabled"}
 
-        user = getattr(self, 'current_user', {})
+        user = getattr(self, "current_user", {})
         number = normalize_whatsapp_number(alert_data.get("owner_whatsapp", "").strip())
         if not number:
-            return False
+            return {"ok": False, "reason": "missing_number"}
 
         timestamp = time.strftime("%d-%m-%Y %I:%M:%S %p")
         message = (
-            "ALERT: Driver drowsiness detected 3 times.\n\n"
+            f"ALERT: Driver drowsiness detected {self.drowsy_event_count} times.\n\n"
             f"Time: {timestamp}\n"
             f"Driver Name: {user.get('name', '')}\n"
             f"Driver Mobile: {user.get('mobile', '')}\n"
@@ -249,10 +253,12 @@ class DetectorEngine:
         )
 
         if self._send_whatsapp_cloud_message(number, message):
-            return True
+            return {"ok": True, "method": "cloud"}
 
         url = f"https://api.whatsapp.com/send?phone={number}&text={quote(message)}"
-        return webbrowser.open(url)
+        if from_browser:
+            return {"ok": True, "method": "browser_url", "url": url}
+        return {"ok": bool(webbrowser.open(url)), "method": "browser", "url": url}
 
     def _send_whatsapp_cloud_message(self, number, message):
         config = get_whatsapp_cloud_config()
@@ -283,6 +289,11 @@ class DetectorEngine:
             return response.ok
         except requests.RequestException:
             return False
+
+    def consume_browser_whatsapp_alert(self):
+        pending_alert = self.pending_browser_whatsapp_alert
+        self.pending_browser_whatsapp_alert = None
+        return pending_alert
 
     def start(self):
         self.stop()
@@ -592,9 +603,20 @@ class DetectorEngine:
         if current_drowsy_state and not self.previous_drowsy_state:
             self.drowsy_event_count += 1
             self.log_detection_event()
-            if self.drowsy_event_count >= 3 and not self.whatsapp_alert_sent:
-                self.send_whatsapp_alert()
-                self.whatsapp_alert_sent = True
+            should_send_whatsapp = (
+                self.drowsy_event_count - self.last_whatsapp_alert_event_count
+                >= self.whatsapp_alert_repeat_count
+            )
+            if should_send_whatsapp:
+                alert_result = self.send_whatsapp_alert(from_browser=from_browser)
+                if alert_result.get("ok"):
+                    self.last_whatsapp_alert_event_count = self.drowsy_event_count
+                    if from_browser and alert_result.get("url"):
+                        self.pending_browser_whatsapp_alert = {
+                            "url": alert_result["url"],
+                            "event_count": self.drowsy_event_count,
+                            "method": alert_result.get("method", "browser_url"),
+                        }
 
         self.previous_drowsy_state = current_drowsy_state
         return frame
@@ -1207,6 +1229,7 @@ def api_frame():
                 return jsonify({"ok": False, "error": "Unable to process frame."}), 500
 
             update_metrics_snapshot(detector)
+            browser_whatsapp_alert = detector.consume_browser_whatsapp_alert()
             ok, buffer = cv2.imencode(".jpg", processed, [int(cv2.IMWRITE_JPEG_QUALITY), 72])
             if not ok:
                 return jsonify({"ok": False, "error": "Unable to encode processed frame."}), 500
@@ -1215,6 +1238,7 @@ def api_frame():
                 {
                     "ok": True,
                     "frame": base64.b64encode(buffer.tobytes()).decode("ascii"),
+                    "whatsapp_alert": browser_whatsapp_alert,
                     **latest_metrics,
                 }
             )
