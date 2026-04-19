@@ -304,6 +304,7 @@
     let lastCanvasWidth = 0;
     let lastCanvasHeight = 0;
     let startingCamera = false;
+    let mobileFullscreenFallback = false;
 
     if (frameContext) {
         frameContext.imageSmoothingEnabled = true;
@@ -316,31 +317,82 @@
         document.msFullscreenElement
     );
 
+    const isFullscreenActive = () => Boolean(getFullscreenElement() || mobileFullscreenFallback);
+
+    const setMobileFullscreenFallback = (enabled) => {
+        mobileFullscreenFallback = enabled;
+        document.body.classList.toggle("monitor-mobile-fullscreen", enabled);
+        if (monitorStage) {
+            monitorStage.classList.toggle("monitor-video-mobile-fullscreen", enabled);
+        }
+    };
+
+    const requestMonitorFullscreen = async () => {
+        if (!monitorStage) {
+            return false;
+        }
+
+        if (monitorStage.requestFullscreen) {
+            await monitorStage.requestFullscreen();
+            return true;
+        }
+        if (monitorStage.webkitRequestFullscreen) {
+            monitorStage.webkitRequestFullscreen();
+            return true;
+        }
+        if (monitorStage.msRequestFullscreen) {
+            monitorStage.msRequestFullscreen();
+            return true;
+        }
+        if (cameraSource && cameraSource.webkitEnterFullscreen) {
+            cameraSource.webkitEnterFullscreen();
+            return true;
+        }
+        return false;
+    };
+
+    const exitMonitorFullscreen = async () => {
+        if (document.exitFullscreen) {
+            await document.exitFullscreen();
+            return true;
+        }
+        if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+            return true;
+        }
+        if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+            return true;
+        }
+        return false;
+    };
+
     const syncFullscreenLabel = () => {
         if (!fullscreenBtn) {
             return;
         }
-        fullscreenBtn.textContent = getFullscreenElement() ? "Exit Fullscreen" : "Enter Fullscreen";
+        fullscreenBtn.textContent = isFullscreenActive() ? "Exit Fullscreen" : "Enter Fullscreen";
     };
 
     if (fullscreenBtn && monitorStage) {
         fullscreenBtn.addEventListener("click", async () => {
             try {
-                if (getFullscreenElement()) {
-                    if (document.exitFullscreen) {
-                        await document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
+                if (mobileFullscreenFallback) {
+                    setMobileFullscreenFallback(false);
+                } else if (getFullscreenElement()) {
+                    const exited = await exitMonitorFullscreen();
+                    if (!exited && isMobileViewport()) {
+                        setMobileFullscreenFallback(false);
                     }
                 } else {
-                    if (monitorStage.requestFullscreen) {
-                        await monitorStage.requestFullscreen();
-                    } else if (monitorStage.webkitRequestFullscreen) {
-                        monitorStage.webkitRequestFullscreen();
-                    } else if (monitorStage.msRequestFullscreen) {
-                        monitorStage.msRequestFullscreen();
+                    let entered = false;
+                    try {
+                        entered = await requestMonitorFullscreen();
+                    } catch (error) {
+                        console.error(error);
+                    }
+                    if (!entered && isMobileViewport()) {
+                        setMobileFullscreenFallback(true);
                     }
                 }
             } catch (error) {

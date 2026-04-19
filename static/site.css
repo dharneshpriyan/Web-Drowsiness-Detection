@@ -1845,9 +1845,20 @@ img {
     border-radius: 0;
 }
 
+.monitor-video.monitor-video-mobile-fullscreen {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+    min-height: 100dvh;
+    z-index: 1200;
+    border-radius: 0;
+}
+
 .monitor-video:fullscreen img,
 .monitor-video:-webkit-full-screen img,
-.monitor-video:-ms-fullscreen img {
+.monitor-video:-ms-fullscreen img,
+.monitor-video.monitor-video-mobile-fullscreen img {
     width: 100vw;
     height: 100vh;
     border-radius: 0;
@@ -1943,6 +1954,10 @@ img {
 
 .monitor-browser-banner[hidden] {
     display: none !important;
+}
+
+body.monitor-mobile-fullscreen {
+    overflow: hidden;
 }
 
 .monitor-browser-banner strong {
@@ -2281,18 +2296,13 @@ img {
 @media (max-width: 760px) {
     .page-shell {
         width: min(100% - 18px, 100%);
-    }
-
-    .topbar,
-    .page-hero,
-    .monitor-topbar {
-        flex-direction: column;
-        align-items: flex-start;
+        padding-top: 12px;
     }
 
     .topbar {
-        top: 8px;
-        padding: 16px;
+        top: 6px;
+        padding: 14px;
+        gap: 12px;
     }
 
     .brand-lockup {
@@ -2306,13 +2316,40 @@ img {
 
     .nav {
         width: 100%;
+        flex-wrap: nowrap;
         gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nav::-webkit-scrollbar {
+        display: none;
     }
 
     .nav a,
     .nav-form,
     .nav-ghost-btn {
-        width: 100%;
+        width: auto;
+        flex: 0 0 auto;
+        min-width: max-content;
+        padding: 10px 16px;
+    }
+
+    .nav-user {
+        flex: 0 0 auto;
+        min-width: max-content;
+        padding: 0 4px 0 2px;
+        font-size: 0.92rem;
+        white-space: nowrap;
+    }
+
+    .page-hero,
+    .monitor-topbar {
+        flex-direction: column;
+        align-items: flex-start;
     }
 
     .hero,
@@ -2397,6 +2434,10 @@ img {
         width: 100%;
     }
 
+    .status-wrap {
+        width: 100%;
+    }
+
     .bottom-metrics-pill span {
         font-size: 0.82rem;
     }
@@ -2404,5 +2445,15 @@ img {
     .exit-monitor-btn {
         right: 12px;
         bottom: 18px;
+    }
+
+    .monitor-video.monitor-video-mobile-fullscreen {
+        height: 100dvh;
+        min-height: 100dvh;
+    }
+
+    .monitor-video.monitor-video-mobile-fullscreen img {
+        width: 100vw;
+        height: 100dvh;
     }
 }
