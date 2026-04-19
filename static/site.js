@@ -492,6 +492,10 @@
 
     const isMobileViewport = () => window.matchMedia("(max-width: 760px)").matches;
 
+    const syncMobileMonitorMode = () => {
+        document.body.classList.toggle("monitor-mobile", isMobileViewport());
+    };
+
     const isSecureOrigin = () => (
         window.isSecureContext ||
         window.location.hostname === "localhost" ||
@@ -900,9 +904,12 @@
     }
 
     updateClock();
+    syncMobileMonitorMode();
     setInterval(updateClock, 1000);
     loadInitialStatus();
     startBrowserCamera();
+
+    window.addEventListener("resize", syncMobileMonitorMode);
 
     window.addEventListener("beforeunload", () => {
         unlockOrientation();

@@ -1951,6 +1951,12 @@ img {
     border: 1px solid rgba(255,255,255,0.08);
 }
 
+body.monitor-mobile #videoFeed,
+body.monitor-mobile #cameraSource.preview-active {
+    transform: scaleX(-1);
+    transform-origin: center;
+}
+
 .monitor-browser-banner {
     position: absolute;
     inset: auto 18px 88px 18px;
@@ -2403,12 +2409,7 @@ body.monitor-mobile-fullscreen {
     }
 
     .bottom-metrics-pill {
-        left: 12px;
-        right: 12px;
-        transform: none;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 10px 12px;
+        display: none;
     }
 
     .monitor-video {
