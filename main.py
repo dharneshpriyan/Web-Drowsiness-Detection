@@ -82,6 +82,10 @@ def normalize_whatsapp_number(number: str) -> str:
     return re.sub(r"\D", "", number or "")
 
 
+def normalize_mobile_number(number: str) -> str:
+    return re.sub(r"\D", "", number or "")
+
+
 def get_whatsapp_cloud_config():
     return {
         "access_token": os.getenv("WHATSAPP_ACCESS_TOKEN", "").strip(),
@@ -709,25 +713,37 @@ def build_user_summary():
         users = {}
 
     normalized_users = []
-    for user in users.values():
+    for passcode, user in users.items():
         if isinstance(user, dict):
+            stored_passcode = str(user.get("passcode", "")).strip() or str(passcode).strip() or "-"
+            stored_mobile = str(user.get("mobile", "")).strip()
+            if not stored_mobile:
+                stored_mobile = str(user.get("age", "")).strip() or "-"
             normalized_users.append(
                 {
+                    "user_key": str(passcode).strip(),
                     "name": str(user.get("name", "")).strip() or "Unknown",
-                    "mobile": str(user.get("mobile", "")).strip() or "-",
-                    "age": str(user.get("age", "")).strip() or "-",
+                    "passcode": stored_passcode,
+                    "mobile": stored_mobile,
                 }
             )
 
     return {
         "total_users": len(normalized_users),
-        "recent_users": list(reversed(normalized_users[-5:])),
+        "all_users": list(reversed(normalized_users)),
     }
 
 
 def load_analytics_events():
     events = load_json(analytics_log_file(), [])
     return events if isinstance(events, list) else []
+
+
+def get_registered_user(users, user_key: str):
+    if not isinstance(users, dict):
+        return None
+    user = users.get(user_key)
+    return user if isinstance(user, dict) else None
 
 
 def is_admin_authenticated():
@@ -849,19 +865,19 @@ def signup():
 @app.post("/signup")
 def signup_post():
     name = request.form.get("name", "").strip()
+    passcode = request.form.get("passcode", "").strip()
     mobile = request.form.get("mobile", "").strip()
-    age = request.form.get("age", "").strip()
 
-    if not name or not mobile or not age:
+    if not name or not passcode or not mobile:
         flash("All fields are required.", "error")
         return redirect(url_for("signup"))
 
     users = load_users_data()
-    if mobile in users:
-        flash("Mobile number already registered.", "error")
+    if passcode in users:
+        flash("Passcode already registered.", "error")
         return redirect(url_for("signup"))
 
-    users[mobile] = {"name": name, "mobile": mobile, "age": age}
+    users[passcode] = {"name": name, "passcode": passcode, "mobile": mobile}
     save_json(users_file(), users)
     flash("Registration successful. Please log in.", "success")
     return redirect(url_for("login"))
@@ -875,18 +891,23 @@ def login():
 @app.post("/login")
 def login_post():
     name = request.form.get("name", "").strip()
-    mobile = request.form.get("mobile", "").strip()
+    passcode = request.form.get("passcode", "").strip()
 
-    if not name or not mobile:
-        flash("Name and mobile are required.", "error")
+    if not name or not passcode:
+        flash("User name and passcode are required.", "error")
         return redirect(url_for("login"))
 
     users = load_users_data()
-    if mobile not in users or users[mobile]["name"] != name:
-        flash("Invalid credentials. Check your driver name and mobile number.", "error")
+    matched_user = users.get(passcode)
+    if not isinstance(matched_user, dict) or matched_user.get("name") != name:
+        flash("Invalid credentials. Check your user name and passcode.", "error")
         return redirect(url_for("login"))
 
-    session["user"] = users[mobile]
+    session["user"] = {
+        "name": str(matched_user.get("name", "")).strip(),
+        "passcode": str(matched_user.get("passcode", "")).strip() or passcode,
+        "mobile": str(matched_user.get("mobile", "")).strip() or str(matched_user.get("age", "")).strip(),
+    }
     return redirect(url_for("index"))
 
 
@@ -924,6 +945,18 @@ def admin_dashboard():
     settings = load_admin_settings()
     events = load_analytics_events()
     user_summary = build_user_summary()
+    edit_user_key = request.args.get("edit_user", "").strip()
+    editable_user = None
+    if edit_user_key:
+        users = load_users_data()
+        matched_user = get_registered_user(users, edit_user_key)
+        if matched_user:
+            editable_user = {
+                "user_key": edit_user_key,
+                "name": str(matched_user.get("name", "")).strip(),
+                "passcode": str(matched_user.get("passcode", "")).strip() or edit_user_key,
+                "mobile": str(matched_user.get("mobile", "")).strip() or str(matched_user.get("age", "")).strip(),
+            }
     recent_events = list(reversed(events[-10:]))
 
     status_counts = {"DROWSY": 0, "YAWNING": 0, "DISTRACTED": 0}
@@ -941,7 +974,86 @@ def admin_dashboard():
         analytics_chart=events[-20:],
         status_counts=status_counts,
         user_summary=user_summary,
+        editable_user=editable_user,
     )
+
+
+@app.post("/admin/users/update")
+def update_admin_user():
+    if not is_admin_authenticated():
+        return redirect(url_for("admin_login"))
+
+    original_key = request.form.get("original_key", "").strip()
+    name = request.form.get("name", "").strip()
+    passcode = request.form.get("passcode", "").strip()
+    mobile = normalize_mobile_number(request.form.get("mobile", "").strip())
+
+    if not original_key or not name or not passcode or not mobile:
+        flash("Name, passcode, and mobile number are required.", "error")
+        return redirect(url_for("admin_dashboard", edit_user=original_key))
+
+    if len(mobile) != 10:
+        flash("Enter a valid 10-digit mobile number.", "error")
+        return redirect(url_for("admin_dashboard", edit_user=original_key))
+
+    users = load_users_data()
+    existing_user = get_registered_user(users, original_key)
+    if not existing_user:
+        flash("Selected user was not found.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    if passcode != original_key and passcode in users:
+        flash("That passcode is already in use by another user.", "error")
+        return redirect(url_for("admin_dashboard", edit_user=original_key))
+
+    updated_user = dict(existing_user)
+    updated_user["name"] = name
+    updated_user["passcode"] = passcode
+    updated_user["mobile"] = mobile
+    updated_user.pop("age", None)
+
+    if passcode != original_key:
+        users.pop(original_key, None)
+    users[passcode] = updated_user
+    save_json(users_file(), users)
+
+    current_user = session.get("user")
+    if isinstance(current_user, dict):
+        current_passcode = str(current_user.get("passcode", "")).strip()
+        if current_passcode == original_key or current_passcode == passcode:
+            session["user"] = {
+                "name": name,
+                "passcode": passcode,
+                "mobile": mobile,
+            }
+
+    flash("Registered user updated.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.post("/admin/users/delete")
+def delete_admin_user():
+    if not is_admin_authenticated():
+        return redirect(url_for("admin_login"))
+
+    user_key = request.form.get("user_key", "").strip()
+    users = load_users_data()
+    if not user_key or user_key not in users:
+        flash("Selected user was not found.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    deleted_user = users.pop(user_key)
+    save_json(users_file(), users)
+
+    current_user = session.get("user")
+    if isinstance(current_user, dict):
+        current_passcode = str(current_user.get("passcode", "")).strip()
+        if current_passcode == user_key:
+            session.pop("user", None)
+
+    deleted_name = str(deleted_user.get("name", "")).strip() or "User"
+    flash(f"{deleted_name} was deleted.", "success")
+    return redirect(url_for("admin_dashboard"))
 
 
 @app.post("/admin/settings")

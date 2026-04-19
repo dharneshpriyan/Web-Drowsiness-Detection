@@ -8,5 +8,5 @@
     "auto_start_monitor": false,
     "show_landmarks": true,
     "whatsapp_alert_repeat_count": 3,
-    "enable_background_animation": false
+    "enable_background_animation": true
 }

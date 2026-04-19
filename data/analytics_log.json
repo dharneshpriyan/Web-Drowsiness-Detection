@@ -262,5 +262,71 @@
         "ear": 0.199,
         "mar": 0.007,
         "yaw": 0.0
+    },
+    {
+        "timestamp": "2026-04-19 13:25:14",
+        "status": "DROWSY",
+        "driver_name": "user",
+        "driver_mobile": "9999999999",
+        "driver_age": "",
+        "attention_score": 76,
+        "ear": 0.198,
+        "mar": 0.036,
+        "yaw": 0.0
+    },
+    {
+        "timestamp": "2026-04-19 13:25:35",
+        "status": "DROWSY",
+        "driver_name": "user",
+        "driver_mobile": "9999999999",
+        "driver_age": "",
+        "attention_score": 68,
+        "ear": 0.173,
+        "mar": 0.052,
+        "yaw": 0.0
+    },
+    {
+        "timestamp": "2026-04-19 13:25:38",
+        "status": "DROWSY",
+        "driver_name": "user",
+        "driver_mobile": "9999999999",
+        "driver_age": "",
+        "attention_score": 64,
+        "ear": 0.171,
+        "mar": 0.029,
+        "yaw": 0.0
+    },
+    {
+        "timestamp": "2026-04-19 13:25:41",
+        "status": "DROWSY",
+        "driver_name": "user",
+        "driver_mobile": "9999999999",
+        "driver_age": "",
+        "attention_score": 68,
+        "ear": 0.16,
+        "mar": 0.03,
+        "yaw": 0.0
+    },
+    {
+        "timestamp": "2026-04-19 13:25:44",
+        "status": "DROWSY",
+        "driver_name": "user",
+        "driver_mobile": "9999999999",
+        "driver_age": "",
+        "attention_score": 68,
+        "ear": 0.162,
+        "mar": 0.021,
+        "yaw": 0.0
+    },
+    {
+        "timestamp": "2026-04-19 13:25:47",
+        "status": "DROWSY",
+        "driver_name": "user",
+        "driver_mobile": "9999999999",
+        "driver_age": "",
+        "attention_score": 68,
+        "ear": 0.167,
+        "mar": 0.027,
+        "yaw": 0.0
     }
 ]

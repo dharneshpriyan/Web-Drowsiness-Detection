@@ -1573,6 +1573,35 @@ img {
     background: rgba(255,255,255,0.03);
 }
 
+.admin-user-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.admin-inline-form {
+    margin: 0;
+}
+
+.btn-small {
+    min-height: 38px;
+    padding: 9px 14px;
+    border-radius: 12px;
+    font-size: 0.86rem;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, rgba(255, 106, 135, 0.95), rgba(255, 77, 109, 0.95));
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #fff6f8;
+}
+
+.btn-danger:hover {
+    box-shadow: 0 14px 28px rgba(255, 77, 109, 0.22);
+    transform: translateY(-2px);
+}
+
 #analyticsChart {
     width: 100%;
     margin-top: 16px;

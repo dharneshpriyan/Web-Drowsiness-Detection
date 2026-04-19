@@ -153,29 +153,39 @@
 
   <section class="content-band">
     <article class="card showcase-copy admin-table-card">
-      <p class="eyebrow">Recent Drivers</p>
+      <p class="eyebrow">Registered Users</p>
       <h2>Registered user overview</h2>
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
             <tr>
               <th>Name</th>
+              <th>Passcode</th>
               <th>Mobile</th>
-              <th>Age</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {% if user_summary.recent_users %}
-              {% for user in user_summary.recent_users %}
+            {% if user_summary.all_users %}
+              {% for user in user_summary.all_users %}
               <tr>
                 <td>{{ user.name }}</td>
+                <td>{{ user.passcode }}</td>
                 <td>{{ user.mobile }}</td>
-                <td>{{ user.age }}</td>
+                <td>
+                  <div class="admin-user-actions">
+                    <a class="btn btn-secondary btn-small" href="{{ url_for('admin_dashboard', edit_user=user.user_key) }}">Edit</a>
+                    <form method="post" action="{{ url_for('delete_admin_user') }}" class="admin-inline-form">
+                      <input type="hidden" name="user_key" value="{{ user.user_key }}" />
+                      <button class="btn btn-danger btn-small" type="submit" onclick="return confirm('Delete this registered user?');">Delete</button>
+                    </form>
+                  </div>
+                </td>
               </tr>
               {% endfor %}
             {% else %}
               <tr>
-                <td colspan="3">No registered users found yet.</td>
+                <td colspan="4">No registered users found yet.</td>
               </tr>
             {% endif %}
           </tbody>
@@ -183,20 +193,37 @@
       </div>
     </article>
 
-    <article class="card feature-rail">
-      <p class="eyebrow">Extra Features</p>
+    <article class="card form-card">
+      <p class="eyebrow">User Controls</p>
+      <h2>Edit registered user</h2>
+      {% if editable_user %}
+      <p class="section-text">Update the selected user's name, passcode, or mobile number.</p>
+      <form method="post" action="{{ url_for('update_admin_user') }}">
+        <input type="hidden" name="original_key" value="{{ editable_user.user_key }}" />
+
+        <label for="editUserName">User Name</label>
+        <input id="editUserName" type="text" name="name" value="{{ editable_user.name }}" required />
+
+        <label for="editUserPasscode">Passcode</label>
+        <input id="editUserPasscode" type="text" name="passcode" value="{{ editable_user.passcode }}" required />
+
+        <label for="editUserMobile">Mobile Number</label>
+        <input id="editUserMobile" type="tel" name="mobile" value="{{ editable_user.mobile }}" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" required />
+
+        <button class="btn btn-primary btn-premium" type="submit">Save User Changes</button>
+        <a class="btn btn-secondary" href="{{ url_for('admin_dashboard') }}">Cancel</a>
+      </form>
+      {% else %}
+      <p class="section-text">Choose any registered user from the table to edit their details, or use delete to remove them from the platform.</p>
       <div class="rail-item">
-        <span>Theme studio</span>
-        <strong>Switch between six admin-controlled visual themes for the full application.</strong>
+        <span>Edit access</span>
+        <strong>Use the Edit button beside a user to update name, passcode, and mobile number.</strong>
       </div>
       <div class="rail-item">
-        <span>Analytics export</span>
-        <strong>Download raw analytics history for external reporting or archiving.</strong>
+        <span>Delete access</span>
+        <strong>Use Delete to permanently remove a registered user from the stored user list.</strong>
       </div>
-      <div class="rail-item">
-        <span>Runtime tuning</span>
-        <strong>Control thresholds, timing, alert repeat count, and animated environment settings.</strong>
-      </div>
+      {% endif %}
     </article>
   </section>
 </main>

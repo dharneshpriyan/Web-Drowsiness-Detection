@@ -31,7 +31,7 @@
         </div>
         <div class="auth-stat">
           <strong>Secure</strong>
-          <span>Driver-based login workflow</span>
+          <span>User-based login workflow</span>
         </div>
       </div>
     </div>
@@ -40,17 +40,17 @@
       <div class="auth-card-glow"></div>
       <p class="eyebrow">Driver Sign Up</p>
       <h2>Create Account</h2>
-      <p class="section-text">Enter your driver details to register for access.</p>
+      <p class="section-text">Enter your details to register for access.</p>
 
       <form method="post" action="{{ url_for('signup') }}" class="auth-form">
-        <label for="signupName">Driver Name</label>
-        <input id="signupName" type="text" name="name" placeholder="Enter your full name" required />
+        <label for="signupName">User Name</label>
+        <input id="signupName" type="text" name="name" placeholder="Enter your user name" required />
+
+        <label for="signupPasscode">Passcode</label>
+        <input id="signupPasscode" type="password" name="passcode" placeholder="Enter your passcode" required />
 
         <label for="signupMobile">Mobile Number</label>
-        <input id="signupMobile" type="text" name="mobile" placeholder="Enter your mobile number" required />
-
-        <label for="signupAge">Age</label>
-        <input id="signupAge" type="number" name="age" placeholder="Enter your age" required />
+        <input id="signupMobile" type="tel" name="mobile" placeholder="Enter your mobile number" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" required />
 
         <button class="btn btn-primary auth-submit" type="submit">Sign Up</button>
       </form>
