@@ -1042,9 +1042,6 @@ def download_windows_installer():
 
 
 
-# @app.get("/download/windows")
-# def download_windows_installer():
-#     return redirect("https://drive.usercontent.google.com/download?id=1kpZwSBmg7tRCUPfHDOHBE0Js61xyu0cY&export=download&authuser=0&confirm=t&uuid=827e3a66-812a-45b2-8ca0-441b1a6e681e&at=ALBwUgl9skC0U4vsqsizmvmnrkfF%3A1776531080241")
 
 
 

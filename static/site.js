@@ -376,6 +376,7 @@
             return;
         }
         cameraBanner.hidden = false;
+        cameraBanner.style.display = "grid";
         if (cameraBannerTitle) {
             cameraBannerTitle.textContent = title;
         }
@@ -392,7 +393,16 @@
     const hideCameraBanner = () => {
         if (cameraBanner) {
             cameraBanner.hidden = true;
+            cameraBanner.style.display = "none";
         }
+    };
+
+    const isBrowserCameraActive = () => {
+        if (!browserStream) {
+            return false;
+        }
+        const activeTracks = browserStream.getVideoTracks().filter((track) => track.readyState === "live");
+        return activeTracks.length > 0 && cameraSource && cameraSource.readyState >= 2;
     };
 
     const getAttentionMeta = (score) => {
@@ -452,6 +462,10 @@
     };
 
     const applyMonitorData = (data) => {
+        if (data.camera_ready || isBrowserCameraActive()) {
+            hideCameraBanner();
+        }
+
         statusValue.textContent = data.status;
         driverValue.textContent = data.driver_name;
         attentionValue.textContent = `${data.attention_score}%`;
@@ -588,6 +602,7 @@
                 const data = await response.json();
                 tuneCaptureProfile(performance.now() - requestStartedAt);
                 if (data.ok) {
+                    hideCameraBanner();
                     if (videoFeed) {
                         videoFeed.src = `data:image/jpeg;base64,${data.frame}`;
                     }

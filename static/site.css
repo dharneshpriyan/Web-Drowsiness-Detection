@@ -1848,6 +1848,7 @@ img {
 .monitor-video:fullscreen img,
 .monitor-video:-webkit-full-screen img,
 .monitor-video:-ms-fullscreen img {
+    width: 100vw;
     height: 100vh;
     border-radius: 0;
 }
@@ -1915,8 +1916,11 @@ img {
 }
 
 .monitor-video img {
+    position: absolute;
+    inset: 0;
+    display: block;
     width: 100%;
-    height: clamp(420px, 70vh, 760px);
+    height: 100%;
     object-fit: cover;
     border-radius: 30px;
     background: #000;
@@ -1935,6 +1939,10 @@ img {
     border: 1px solid rgba(95, 196, 255, 0.24);
     box-shadow: 0 22px 48px rgba(0, 0, 0, 0.24);
     backdrop-filter: blur(12px);
+}
+
+.monitor-browser-banner[hidden] {
+    display: none !important;
 }
 
 .monitor-browser-banner strong {
@@ -2266,7 +2274,7 @@ img {
     }
 
     .monitor-video img {
-        height: clamp(360px, 62vh, 520px);
+        height: 100%;
     }
 }
 
@@ -2355,7 +2363,7 @@ img {
     }
 
     .monitor-video img {
-        height: clamp(320px, 58svh, 460px);
+        height: 100%;
         border-radius: 24px;
     }
 
