@@ -154,9 +154,9 @@ class DetectorEngine:
         self.mp_face_mesh = self._load_face_mesh_module()
         self.face_mesh = self.mp_face_mesh.FaceMesh(
             max_num_faces=1,
-            refine_landmarks=True,
-            min_detection_confidence=0.7,
-            min_tracking_confidence=0.7,
+            refine_landmarks=False,
+            min_detection_confidence=0.6,
+            min_tracking_confidence=0.6,
         )
 
     def _load_face_mesh_module(self):
@@ -431,7 +431,22 @@ class DetectorEngine:
         self.fps = 1 / time_diff if time_diff > 0 else 0
         self.prev = current
 
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        processing_frame = frame
+        processing_scale = 1.0
+        frame_height, frame_width = frame.shape[:2]
+        max_processing_width = 480 if from_browser else 640
+        if frame_width > max_processing_width:
+            processing_scale = max_processing_width / float(frame_width)
+            processing_frame = cv2.resize(
+                frame,
+                (
+                    max_processing_width,
+                    max(1, int(frame_height * processing_scale)),
+                ),
+                interpolation=cv2.INTER_AREA,
+            )
+
+        rgb = cv2.cvtColor(processing_frame, cv2.COLOR_BGR2RGB)
         result = self.face_mesh.process(rgb)
         if from_browser:
             self.camera_ready = True
@@ -442,8 +457,22 @@ class DetectorEngine:
 
         if result.multi_face_landmarks:
             face = result.multi_face_landmarks[0]
-            h, w, _ = frame.shape
-            lm = np.array([(int(p.x * w), int(p.y * h)) for p in face.landmark])
+            processed_h, processed_w, _ = processing_frame.shape
+            if processing_scale != 1.0:
+                inverse_scale = 1.0 / processing_scale
+                lm = np.array(
+                    [
+                        (
+                            int(p.x * processed_w * inverse_scale),
+                            int(p.y * processed_h * inverse_scale),
+                        )
+                        for p in face.landmark
+                    ]
+                )
+            else:
+                lm = np.array(
+                    [(int(p.x * processed_w), int(p.y * processed_h)) for p in face.landmark]
+                )
 
             ear = (
                 self.compute_EAR(lm, self.LEFT_EYE)

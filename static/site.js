@@ -298,13 +298,14 @@
     let browserStream = null;
     let frameLoopTimer = null;
     let frameRequestInFlight = false;
-    let adaptiveCaptureWidth = 640;
-    let adaptiveDelay = 120;
+    let adaptiveCaptureWidth = 540;
+    let adaptiveDelay = 140;
     let smoothedRoundTrip = 0;
     let lastCanvasWidth = 0;
     let lastCanvasHeight = 0;
     let startingCamera = false;
     let mobileFullscreenFallback = false;
+    let audioUnlocked = false;
 
     if (frameContext) {
         frameContext.imageSmoothingEnabled = true;
@@ -532,6 +533,27 @@
         return activeTracks.length > 0 && cameraSource && cameraSource.readyState >= 2;
     };
 
+    const unlockAlarmAudio = async () => {
+        if (!alarmAudio || audioUnlocked) {
+            return true;
+        }
+
+        try {
+            alarmAudio.volume = 1;
+            alarmAudio.muted = false;
+            const playPromise = alarmAudio.play();
+            if (playPromise && typeof playPromise.then === "function") {
+                await playPromise;
+            }
+            alarmAudio.pause();
+            alarmAudio.currentTime = 0;
+            audioUnlocked = true;
+            return true;
+        } catch (error) {
+            return false;
+        }
+    };
+
     const getAttentionMeta = (score) => {
         if (score >= 80) {
             return {
@@ -632,7 +654,9 @@
         videoAlert.classList.toggle("active", isAlert);
 
         if (isAlert) {
-            alarmAudio.play().catch(() => {});
+            if (audioUnlocked) {
+                alarmAudio.play().catch(() => {});
+            }
         } else {
             alarmAudio.pause();
             alarmAudio.currentTime = 0;
@@ -677,13 +701,13 @@
             ? roundTripMs
             : (smoothedRoundTrip * 0.72) + (roundTripMs * 0.28);
 
-        if (smoothedRoundTrip > 260 && adaptiveCaptureWidth > 480) {
-            adaptiveCaptureWidth = Math.max(480, adaptiveCaptureWidth - 80);
-        } else if (smoothedRoundTrip < 150 && adaptiveCaptureWidth < 720) {
-            adaptiveCaptureWidth = Math.min(720, adaptiveCaptureWidth + 80);
+        if (smoothedRoundTrip > 260 && adaptiveCaptureWidth > 360) {
+            adaptiveCaptureWidth = Math.max(360, adaptiveCaptureWidth - 60);
+        } else if (smoothedRoundTrip < 150 && adaptiveCaptureWidth < 640) {
+            adaptiveCaptureWidth = Math.min(640, adaptiveCaptureWidth + 60);
         }
 
-        adaptiveDelay = Math.max(90, Math.min(180, Math.round(smoothedRoundTrip * 0.45)));
+        adaptiveDelay = Math.max(100, Math.min(220, Math.round(smoothedRoundTrip * 0.55)));
     };
 
     const sendFrameToBackend = async () => {
@@ -698,7 +722,7 @@
         const sourceWidth = cameraSource.videoWidth || 960;
         const sourceHeight = cameraSource.videoHeight || 540;
         const renderWidth = Math.min(sourceWidth, adaptiveCaptureWidth);
-        const renderHeight = Math.max(320, Math.round((sourceHeight / sourceWidth) * renderWidth));
+        const renderHeight = Math.max(240, Math.round((sourceHeight / sourceWidth) * renderWidth));
 
         if (renderWidth !== lastCanvasWidth || renderHeight !== lastCanvasHeight) {
             frameCapture.width = renderWidth;
@@ -773,7 +797,7 @@
                 frameRequestInFlight = false;
                 queueNextFrame();
             }
-        }, "image/jpeg", 0.72);
+        }, "image/jpeg", 0.62);
     };
 
     const buildCameraProfiles = () => {
@@ -784,18 +808,18 @@
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
-                        frameRate: { ideal: 15, max: 20 },
+                        width: { ideal: 480 },
+                        height: { ideal: 360 },
+                        frameRate: { ideal: 12, max: 15 },
                     },
                 },
                 {
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 480 },
-                        height: { ideal: 360 },
-                        frameRate: { ideal: 12, max: 15 },
+                        width: { ideal: 360 },
+                        height: { ideal: 270 },
+                        frameRate: { ideal: 10, max: 12 },
                     },
                 },
                 {
@@ -810,8 +834,8 @@
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
+                        width: { ideal: 540 },
+                        height: { ideal: 405 },
                         frameRate: { ideal: 15, max: 20 },
                     },
                 },
@@ -866,6 +890,7 @@
         setCameraBanner("Starting Camera", "Requesting camera access from the browser...", true);
 
         try {
+            await unlockAlarmAudio();
             await fetch(window.monitorConfig.startUrl, { method: "POST" });
             stopBrowserStream(true);
 
@@ -920,8 +945,17 @@
     };
 
     if (startCameraBtn) {
-        startCameraBtn.addEventListener("click", startBrowserCamera);
+        startCameraBtn.addEventListener("click", async () => {
+            await unlockAlarmAudio();
+            startBrowserCamera();
+        });
     }
+
+    ["click", "touchstart"].forEach((eventName) => {
+        document.addEventListener(eventName, () => {
+            unlockAlarmAudio();
+        }, { passive: true, once: true });
+    });
 
     updateClock();
     setInterval(updateClock, 1000);
