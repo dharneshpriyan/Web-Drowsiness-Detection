@@ -552,6 +552,17 @@ latest_metrics = {
 }
 
 
+def set_backend_error(message):
+    global latest_metrics
+    latest_metrics.update(
+        {
+            "camera_ready": False,
+            "camera_error": message,
+            "updated_at": time.time(),
+        }
+    )
+
+
 @app.context_processor
 def inject_navigation():
     admin_settings = load_admin_settings()
@@ -565,7 +576,12 @@ def inject_navigation():
 def get_engine():
     global engine
     if engine is None:
-        engine = DetectorEngine()
+        try:
+            engine = DetectorEngine()
+        except Exception as exc:
+            app.logger.exception("Detector engine initialization failed.")
+            set_backend_error(f"Detector engine initialization failed: {exc}")
+            raise RuntimeError(f"Detector engine initialization failed: {exc}") from exc
     return engine
 
 
@@ -935,8 +951,13 @@ def monitor():
 
 @app.post("/api/monitor/start")
 def api_start_monitor():
-    start_monitor()
-    return jsonify({"ok": True})
+    try:
+        start_monitor()
+        return jsonify({"ok": True})
+    except Exception as exc:
+        app.logger.exception("Monitor start failed.")
+        set_backend_error(f"Monitor start failed: {exc}")
+        return jsonify({"ok": False, "error": f"Monitor start failed: {exc}"}), 500
 
 
 @app.post("/api/monitor/stop")
@@ -952,10 +973,10 @@ def api_status():
 
 @app.post("/api/frame")
 def api_frame():
-    if not monitor_running:
-        start_monitor()
-
     try:
+        if not monitor_running:
+            start_monitor()
+
         with engine_lock:
             detector = get_engine()
             detector.current_user = session.get("user", {})
@@ -988,13 +1009,7 @@ def api_frame():
             )
     except Exception as exc:
         app.logger.exception("Frame processing failed while handling browser camera upload.")
-        latest_metrics.update(
-            {
-                "camera_ready": False,
-                "camera_error": f"Frame processing failed: {exc}",
-                "updated_at": time.time(),
-            }
-        )
+        set_backend_error(f"Frame processing failed: {exc}")
         return jsonify({"ok": False, "error": f"Frame processing failed: {exc}"}), 500
 
 
