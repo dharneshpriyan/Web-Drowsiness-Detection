@@ -354,8 +354,8 @@
     let frameLoopTimer = null;
     let statusPollTimer = null;
     let frameRequestInFlight = false;
-    let adaptiveCaptureWidth = 460;
-    let adaptiveDelay = 110;
+    let adaptiveCaptureWidth = 360;
+    let adaptiveDelay = 40;
     let smoothedRoundTrip = 0;
     let lastCanvasWidth = 0;
     let lastCanvasHeight = 0;
@@ -365,8 +365,7 @@
     let audioUnlocked = false;
 
     if (frameContext) {
-        frameContext.imageSmoothingEnabled = true;
-        frameContext.imageSmoothingQuality = "high";
+        frameContext.imageSmoothingEnabled = false;
     }
 
     const getFullscreenElement = () => (
@@ -786,13 +785,13 @@
             ? roundTripMs
             : (smoothedRoundTrip * 0.72) + (roundTripMs * 0.28);
 
-        if (smoothedRoundTrip > 250 && adaptiveCaptureWidth > 360) {
-            adaptiveCaptureWidth = Math.max(360, adaptiveCaptureWidth - 40);
-        } else if (smoothedRoundTrip < 120 && adaptiveCaptureWidth < 560) {
-            adaptiveCaptureWidth = Math.min(560, adaptiveCaptureWidth + 40);
+        if (smoothedRoundTrip > 180 && adaptiveCaptureWidth > 280) {
+            adaptiveCaptureWidth = Math.max(280, adaptiveCaptureWidth - 30);
+        } else if (smoothedRoundTrip < 90 && adaptiveCaptureWidth < 420) {
+            adaptiveCaptureWidth = Math.min(420, adaptiveCaptureWidth + 20);
         }
 
-        adaptiveDelay = Math.max(80, Math.min(170, Math.round(smoothedRoundTrip * 0.42)));
+        adaptiveDelay = Math.max(20, Math.min(70, Math.round(smoothedRoundTrip * 0.12)));
     };
 
     const sendFrameToBackend = async () => {
@@ -803,7 +802,7 @@
             return;
         }
         if (frameRequestInFlight || !browserStream || cameraSource.readyState < 2) {
-            queueNextFrame(70);
+            queueNextFrame(20);
             return;
         }
 
@@ -826,7 +825,7 @@
         frameCapture.toBlob(async (blob) => {
             if (!blob) {
                 frameRequestInFlight = false;
-                queueNextFrame(85);
+                queueNextFrame(30);
                 return;
             }
 
@@ -883,7 +882,7 @@
                 frameRequestInFlight = false;
                 queueNextFrame();
             }
-        }, "image/jpeg", 0.5);
+        }, "image/jpeg", 0.35);
     };
 
     const buildCameraProfiles = () => {
@@ -894,18 +893,18 @@
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 480 },
-                        height: { ideal: 360 },
-                        frameRate: { ideal: 15, max: 18 },
+                        width: { ideal: 360 },
+                        height: { ideal: 270 },
+                        frameRate: { ideal: 18, max: 24 },
                     },
                 },
                 {
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 360 },
-                        height: { ideal: 270 },
-                        frameRate: { ideal: 12, max: 15 },
+                        width: { ideal: 320 },
+                        height: { ideal: 240 },
+                        frameRate: { ideal: 15, max: 20 },
                     },
                 },
                 {
@@ -920,9 +919,9 @@
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
-                        frameRate: { ideal: 18, max: 24 },
+                        width: { ideal: 480 },
+                        height: { ideal: 360 },
+                        frameRate: { ideal: 20, max: 24 },
                     },
                 },
             ];
@@ -969,7 +968,7 @@
             }
             setCameraBanner(
                 "External Camera Error",
-                "Check the stream URL in camera settings and confirm the camera feed is reachable from this computer.",
+                error.message || "Check the stream URL in camera settings and confirm the camera feed is reachable from the deployed server.",
                 true,
             );
         } finally {
@@ -1051,7 +1050,7 @@
             await waitForCameraFrame();
             setCameraPreviewMode(true);
             hideCameraBanner();
-            queueNextFrame(isMobileViewport() ? 90 : 70);
+            queueNextFrame(isMobileViewport() ? 30 : 20);
         } catch (error) {
             console.error(error);
             if (stateLabel) {

@@ -1,5 +1,5 @@
 import atexit
-import base64
+import ipaddress
 import json
 import os
 import re
@@ -8,7 +8,7 @@ import time
 import webbrowser
 from collections import deque
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 from flask import redirect
 
 import cv2
@@ -458,7 +458,7 @@ class DetectorEngine:
         processing_frame = frame
         processing_scale = 1.0
         frame_height, frame_width = frame.shape[:2]
-        max_processing_width = 420 if from_browser else 640
+        max_processing_width = 320 if from_browser else 640
         if frame_width > max_processing_width:
             processing_scale = max_processing_width / float(frame_width)
             processing_frame = cv2.resize(
@@ -523,7 +523,7 @@ class DetectorEngine:
             self.mar_avg = float(np.mean(self.mar_buffer)) if self.mar_buffer else 0.0
 
             should_refresh_head_pose = (
-                not from_browser or self.browser_frame_count % 2 == 0
+                not from_browser or self.browser_frame_count % 3 == 0
             )
             if should_refresh_head_pose:
                 _, self.yaw, _ = self.head_pose(frame, lm)
@@ -725,6 +725,65 @@ def load_camera_data():
     )
 
 
+def is_private_or_local_camera_source(camera_source: str) -> bool:
+    source = str(camera_source or "").strip()
+    if not source or source == "0":
+        return False
+
+    parsed = urlparse(source if "://" in source else f"http://{source}")
+    host = (parsed.hostname or "").strip().lower()
+    if not host:
+        return False
+
+    if host in {"localhost", "127.0.0.1", "::1"} or host.endswith(".local"):
+        return True
+
+    try:
+        address = ipaddress.ip_address(host)
+        return (
+            address.is_private
+            or address.is_loopback
+            or address.is_link_local
+            or address.is_reserved
+        )
+    except ValueError:
+        return False
+
+
+def is_local_request_host(host: str) -> bool:
+    request_host = str(host or "").strip().split(":", 1)[0].lower()
+    if not request_host:
+        return False
+    if request_host in {"localhost", "127.0.0.1", "::1"} or request_host.endswith(".local"):
+        return True
+
+    try:
+        address = ipaddress.ip_address(request_host)
+        return (
+            address.is_private
+            or address.is_loopback
+            or address.is_link_local
+            or address.is_reserved
+        )
+    except ValueError:
+        return False
+
+
+def validate_external_camera_source(camera_source: str, request_host: str = "") -> str:
+    source = str(camera_source or "").strip()
+    if not source or source == "0":
+        return ""
+
+    if request_host and not is_local_request_host(request_host) and is_private_or_local_camera_source(source):
+        return (
+            "The saved external camera URL uses a private/local network address, so this deployed server "
+            f"cannot reach it: {source}. Use a public camera stream URL, run the app on the same network as "
+            "the camera, or switch to browser camera mode for Render deployment."
+        )
+
+    return ""
+
+
 def resolve_camera_mode(camera_data=None):
     data = camera_data or load_camera_data()
     camera_source = str(data.get("camera_source", "0")).strip()
@@ -797,7 +856,7 @@ def update_metrics_snapshot(detector):
     }
 
 
-def start_monitor():
+def start_monitor(request_host: str = ""):
     global monitor_running
     with engine_lock:
         if monitor_running:
@@ -807,9 +866,18 @@ def start_monitor():
         detector.stop()
         detector.reset_runtime_state()
         detector.apply_admin_settings(load_admin_settings())
-        camera_mode, _ = resolve_camera_mode()
+        camera_mode, camera_source = resolve_camera_mode()
         if camera_mode == "external":
+            validation_error = validate_external_camera_source(camera_source, request_host=request_host)
+            if validation_error:
+                detector.camera_ready = False
+                detector.last_error = validation_error
+                update_metrics_snapshot(detector)
+                raise RuntimeError(validation_error)
             detector.start()
+            if not detector.camera_ready:
+                update_metrics_snapshot(detector)
+                raise RuntimeError(detector.last_error or "Unable to open the selected camera source.")
         else:
             detector.camera_ready = False
             detector.last_error = "Waiting for browser camera permission and frames."
@@ -1199,7 +1267,7 @@ def monitor():
 @app.post("/api/monitor/start")
 def api_start_monitor():
     try:
-        start_monitor()
+        start_monitor(request_host=request.host)
         return jsonify({"ok": True})
     except Exception as exc:
         app.logger.exception("Monitor start failed.")
@@ -1244,14 +1312,10 @@ def api_frame():
 
             update_metrics_snapshot(detector)
             browser_whatsapp_alert = detector.consume_browser_whatsapp_alert()
-            ok, buffer = cv2.imencode(".jpg", processed, [int(cv2.IMWRITE_JPEG_QUALITY), 72])
-            if not ok:
-                return jsonify({"ok": False, "error": "Unable to encode processed frame."}), 500
 
             return jsonify(
                 {
                     "ok": True,
-                    "frame": base64.b64encode(buffer.tobytes()).decode("ascii"),
                     "whatsapp_alert": browser_whatsapp_alert,
                     **latest_metrics,
                 }
