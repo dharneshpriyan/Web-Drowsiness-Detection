@@ -203,6 +203,7 @@ class DetectorEngine:
         self.fps = 0
         self.prev = time.time()
         self.current_event_logged = False
+        self.browser_frame_count = 0
 
     def apply_admin_settings(self, settings):
         self.EAR_THRESH = float(settings.get("ear_threshold", 0.23))
@@ -434,7 +435,7 @@ class DetectorEngine:
         processing_frame = frame
         processing_scale = 1.0
         frame_height, frame_width = frame.shape[:2]
-        max_processing_width = 480 if from_browser else 640
+        max_processing_width = 360 if from_browser else 640
         if frame_width > max_processing_width:
             processing_scale = max_processing_width / float(frame_width)
             processing_frame = cv2.resize(
@@ -449,6 +450,7 @@ class DetectorEngine:
         rgb = cv2.cvtColor(processing_frame, cv2.COLOR_BGR2RGB)
         result = self.face_mesh.process(rgb)
         if from_browser:
+            self.browser_frame_count += 1
             self.camera_ready = True
             self.last_error = ""
 
@@ -485,7 +487,11 @@ class DetectorEngine:
             self.ear_avg = float(np.mean(self.ear_buffer)) if self.ear_buffer else 0.0
             self.mar_avg = float(np.mean(self.mar_buffer)) if self.mar_buffer else 0.0
 
-            _, self.yaw, _ = self.head_pose(frame, lm)
+            should_refresh_head_pose = (
+                not from_browser or self.browser_frame_count % 3 == 0
+            )
+            if should_refresh_head_pose:
+                _, self.yaw, _ = self.head_pose(frame, lm)
 
             if self.ear_avg < self.EAR_THRESH:
                 if self.eye_closed_started_at is None:
@@ -532,7 +538,8 @@ class DetectorEngine:
             else:
                 self.alert_start_time = None
 
-            self._draw_overlay_elements(frame, lm)
+            if not from_browser:
+                self._draw_overlay_elements(frame, lm)
 
         current_drowsy_state = self.status == "DROWSY"
         if current_drowsy_state and not self.previous_drowsy_state:

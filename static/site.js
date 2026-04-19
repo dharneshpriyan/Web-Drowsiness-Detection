@@ -298,8 +298,8 @@
     let browserStream = null;
     let frameLoopTimer = null;
     let frameRequestInFlight = false;
-    let adaptiveCaptureWidth = 540;
-    let adaptiveDelay = 140;
+    let adaptiveCaptureWidth = 420;
+    let adaptiveDelay = 160;
     let smoothedRoundTrip = 0;
     let lastCanvasWidth = 0;
     let lastCanvasHeight = 0;
@@ -701,13 +701,13 @@
             ? roundTripMs
             : (smoothedRoundTrip * 0.72) + (roundTripMs * 0.28);
 
-        if (smoothedRoundTrip > 260 && adaptiveCaptureWidth > 360) {
-            adaptiveCaptureWidth = Math.max(360, adaptiveCaptureWidth - 60);
-        } else if (smoothedRoundTrip < 150 && adaptiveCaptureWidth < 640) {
-            adaptiveCaptureWidth = Math.min(640, adaptiveCaptureWidth + 60);
+        if (smoothedRoundTrip > 240 && adaptiveCaptureWidth > 320) {
+            adaptiveCaptureWidth = Math.max(320, adaptiveCaptureWidth - 40);
+        } else if (smoothedRoundTrip < 130 && adaptiveCaptureWidth < 520) {
+            adaptiveCaptureWidth = Math.min(520, adaptiveCaptureWidth + 40);
         }
 
-        adaptiveDelay = Math.max(100, Math.min(220, Math.round(smoothedRoundTrip * 0.55)));
+        adaptiveDelay = Math.max(120, Math.min(240, Math.round(smoothedRoundTrip * 0.65)));
     };
 
     const sendFrameToBackend = async () => {
@@ -715,14 +715,14 @@
             return;
         }
         if (frameRequestInFlight || !browserStream || cameraSource.readyState < 2) {
-            queueNextFrame(90);
+            queueNextFrame(100);
             return;
         }
 
         const sourceWidth = cameraSource.videoWidth || 960;
         const sourceHeight = cameraSource.videoHeight || 540;
         const renderWidth = Math.min(sourceWidth, adaptiveCaptureWidth);
-        const renderHeight = Math.max(240, Math.round((sourceHeight / sourceWidth) * renderWidth));
+        const renderHeight = Math.max(220, Math.round((sourceHeight / sourceWidth) * renderWidth));
 
         if (renderWidth !== lastCanvasWidth || renderHeight !== lastCanvasHeight) {
             frameCapture.width = renderWidth;
@@ -766,10 +766,7 @@
                 tuneCaptureProfile(performance.now() - requestStartedAt);
                 if (response.ok && data && data.ok) {
                     hideCameraBanner();
-                    setCameraPreviewMode(false);
-                    if (videoFeed) {
-                        videoFeed.src = `data:image/jpeg;base64,${data.frame}`;
-                    }
+                    setCameraPreviewMode(true);
                     applyMonitorData(data);
                 } else {
                     const errorMessage = (data && data.error)
@@ -797,7 +794,7 @@
                 frameRequestInFlight = false;
                 queueNextFrame();
             }
-        }, "image/jpeg", 0.62);
+        }, "image/jpeg", 0.5);
     };
 
     const buildCameraProfiles = () => {
@@ -808,18 +805,18 @@
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 480 },
-                        height: { ideal: 360 },
-                        frameRate: { ideal: 12, max: 15 },
+                        width: { ideal: 360 },
+                        height: { ideal: 270 },
+                        frameRate: { ideal: 10, max: 12 },
                     },
                 },
                 {
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 360 },
-                        height: { ideal: 270 },
-                        frameRate: { ideal: 10, max: 12 },
+                        width: { ideal: 320 },
+                        height: { ideal: 240 },
+                        frameRate: { ideal: 8, max: 10 },
                     },
                 },
                 {
@@ -834,9 +831,9 @@
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 540 },
-                        height: { ideal: 405 },
-                        frameRate: { ideal: 15, max: 20 },
+                        width: { ideal: 420 },
+                        height: { ideal: 315 },
+                        frameRate: { ideal: 12, max: 15 },
                     },
                 },
             ];
@@ -921,7 +918,7 @@
             await waitForCameraFrame();
             setCameraPreviewMode(true);
             hideCameraBanner();
-            queueNextFrame(isMobileViewport() ? 110 : 80);
+            queueNextFrame(isMobileViewport() ? 150 : 120);
         } catch (error) {
             console.error(error);
             if (stateLabel) {
