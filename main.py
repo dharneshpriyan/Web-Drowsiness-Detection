@@ -955,36 +955,39 @@ def api_frame():
     if not monitor_running:
         start_monitor()
 
-    with engine_lock:
-        detector = get_engine()
-        detector.current_user = session.get("user", {})
+    try:
+        with engine_lock:
+            detector = get_engine()
+            detector.current_user = session.get("user", {})
 
-        frame_file = request.files.get("frame")
-        if frame_file is None:
-            return jsonify({"ok": False, "error": "Missing frame payload."}), 400
+            frame_file = request.files.get("frame")
+            if frame_file is None:
+                return jsonify({"ok": False, "error": "Missing frame payload."}), 400
 
-        raw_bytes = frame_file.read()
-        np_buffer = np.frombuffer(raw_bytes, dtype=np.uint8)
-        frame = cv2.imdecode(np_buffer, cv2.IMREAD_COLOR)
-        if frame is None:
-            return jsonify({"ok": False, "error": "Invalid frame data."}), 400
+            raw_bytes = frame_file.read()
+            np_buffer = np.frombuffer(raw_bytes, dtype=np.uint8)
+            frame = cv2.imdecode(np_buffer, cv2.IMREAD_COLOR)
+            if frame is None:
+                return jsonify({"ok": False, "error": "Invalid frame data."}), 400
 
-        processed = detector.process_frame(frame, from_browser=True)
-        if processed is None:
-            return jsonify({"ok": False, "error": "Unable to process frame."}), 500
+            processed = detector.process_frame(frame, from_browser=True)
+            if processed is None:
+                return jsonify({"ok": False, "error": "Unable to process frame."}), 500
 
-        update_metrics_snapshot(detector)
-        ok, buffer = cv2.imencode(".jpg", processed, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
-        if not ok:
-            return jsonify({"ok": False, "error": "Unable to encode processed frame."}), 500
+            update_metrics_snapshot(detector)
+            ok, buffer = cv2.imencode(".jpg", processed, [int(cv2.IMWRITE_JPEG_QUALITY), 72])
+            if not ok:
+                return jsonify({"ok": False, "error": "Unable to encode processed frame."}), 500
 
-        return jsonify(
-            {
-                "ok": True,
-                "frame": base64.b64encode(buffer.tobytes()).decode("ascii"),
-                **latest_metrics,
-            }
-        )
+            return jsonify(
+                {
+                    "ok": True,
+                    "frame": base64.b64encode(buffer.tobytes()).decode("ascii"),
+                    **latest_metrics,
+                }
+            )
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"Frame processing failed: {exc}"}), 500
 
 
 def generate_frames():

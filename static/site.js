@@ -298,8 +298,8 @@
     let browserStream = null;
     let frameLoopTimer = null;
     let frameRequestInFlight = false;
-    let adaptiveCaptureWidth = 960;
-    let adaptiveDelay = 90;
+    let adaptiveCaptureWidth = 640;
+    let adaptiveDelay = 120;
     let smoothedRoundTrip = 0;
     let lastCanvasWidth = 0;
     let lastCanvasHeight = 0;
@@ -677,13 +677,13 @@
             ? roundTripMs
             : (smoothedRoundTrip * 0.72) + (roundTripMs * 0.28);
 
-        if (smoothedRoundTrip > 260 && adaptiveCaptureWidth > 720) {
-            adaptiveCaptureWidth = Math.max(720, adaptiveCaptureWidth - 80);
-        } else if (smoothedRoundTrip < 150 && adaptiveCaptureWidth < 960) {
-            adaptiveCaptureWidth = Math.min(960, adaptiveCaptureWidth + 80);
+        if (smoothedRoundTrip > 260 && adaptiveCaptureWidth > 480) {
+            adaptiveCaptureWidth = Math.max(480, adaptiveCaptureWidth - 80);
+        } else if (smoothedRoundTrip < 150 && adaptiveCaptureWidth < 720) {
+            adaptiveCaptureWidth = Math.min(720, adaptiveCaptureWidth + 80);
         }
 
-        adaptiveDelay = Math.max(55, Math.min(135, Math.round(smoothedRoundTrip * 0.35)));
+        adaptiveDelay = Math.max(90, Math.min(180, Math.round(smoothedRoundTrip * 0.45)));
     };
 
     const sendFrameToBackend = async () => {
@@ -695,10 +695,10 @@
             return;
         }
 
-        const sourceWidth = cameraSource.videoWidth || 1280;
-        const sourceHeight = cameraSource.videoHeight || 720;
+        const sourceWidth = cameraSource.videoWidth || 960;
+        const sourceHeight = cameraSource.videoHeight || 540;
         const renderWidth = Math.min(sourceWidth, adaptiveCaptureWidth);
-        const renderHeight = Math.max(480, Math.round((sourceHeight / sourceWidth) * renderWidth));
+        const renderHeight = Math.max(320, Math.round((sourceHeight / sourceWidth) * renderWidth));
 
         if (renderWidth !== lastCanvasWidth || renderHeight !== lastCanvasHeight) {
             frameCapture.width = renderWidth;
@@ -749,7 +749,7 @@
                 frameRequestInFlight = false;
                 queueNextFrame();
             }
-        }, "image/jpeg", 0.88);
+        }, "image/jpeg", 0.72);
     };
 
     const buildCameraProfiles = () => {
@@ -760,18 +760,18 @@
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 960 },
-                        height: { ideal: 540 },
-                        frameRate: { ideal: 20, max: 24 },
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        frameRate: { ideal: 15, max: 20 },
                     },
                 },
                 {
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
-                        frameRate: { ideal: 15, max: 20 },
+                        width: { ideal: 480 },
+                        height: { ideal: 360 },
+                        frameRate: { ideal: 12, max: 15 },
                     },
                 },
                 {
@@ -786,9 +786,9 @@
                     audio: false,
                     video: {
                         facingMode: { ideal: "user" },
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        frameRate: { ideal: 24, max: 30 },
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        frameRate: { ideal: 15, max: 20 },
                     },
                 },
             ];

@@ -1,7 +1,6 @@
 Flask
 mediapipe
 numpy
-opencv-python
 requests
 Werkzeug
 gunicorn
