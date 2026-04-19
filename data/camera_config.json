@@ -1,4 +1,4 @@
 {
-    "camera_source": "0",
-    "last_external_camera_source": ""
+    "camera_source": "http://172.20.10.3:8080/video",
+    "last_external_camera_source": "http://172.20.10.3:8080/video"
 }

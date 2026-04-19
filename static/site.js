@@ -349,8 +349,10 @@
     const startCameraBtn = document.getElementById("startCameraBtn");
     const frameCapture = document.getElementById("frameCapture");
     const frameContext = frameCapture ? frameCapture.getContext("2d", { willReadFrequently: false }) : null;
+    const monitorUsesBrowserCamera = window.monitorConfig.cameraMode !== "external";
     let browserStream = null;
     let frameLoopTimer = null;
+    let statusPollTimer = null;
     let frameRequestInFlight = false;
     let adaptiveCaptureWidth = 460;
     let adaptiveDelay = 110;
@@ -412,6 +414,7 @@
         cameraSource.classList.toggle("preview-active", showRawPreview);
         cameraSource.hidden = !showRawPreview;
         videoFeed.classList.toggle("preview-hidden", showRawPreview);
+        videoFeed.hidden = false;
     };
 
     const waitForCameraFrame = async (timeoutMs = 4000) => {
@@ -666,7 +669,7 @@
     };
 
     const applyMonitorData = (data) => {
-        if (data.camera_ready || isBrowserCameraActive()) {
+        if (data.camera_ready || (monitorUsesBrowserCamera && isBrowserCameraActive())) {
             hideCameraBanner();
         }
 
@@ -728,6 +731,13 @@
         }
     };
 
+    const startStatusPolling = () => {
+        if (statusPollTimer) {
+            window.clearInterval(statusPollTimer);
+        }
+        statusPollTimer = window.setInterval(loadInitialStatus, 1000);
+    };
+
     const stopBrowserStream = (preserveStartingState = false) => {
         if (frameLoopTimer) {
             window.clearTimeout(frameLoopTimer);
@@ -738,6 +748,9 @@
             browserStream = null;
         }
         setCameraPreviewMode(false);
+        if (cameraSource) {
+            cameraSource.srcObject = null;
+        }
         if (!preserveStartingState) {
             startingCamera = false;
             if (startCameraBtn) {
@@ -784,6 +797,9 @@
 
     const sendFrameToBackend = async () => {
         if (!cameraSource || !frameCapture || !frameContext) {
+            return;
+        }
+        if (!monitorUsesBrowserCamera) {
             return;
         }
         if (frameRequestInFlight || !browserStream || cameraSource.readyState < 2) {
@@ -921,6 +937,50 @@
         return baseProfiles;
     };
 
+    const startExternalCameraStream = async () => {
+        startingCamera = true;
+        setCameraBanner("Starting External Camera", "Connecting to the saved camera stream...", true);
+
+        try {
+            await unlockAlarmAudio();
+            const response = await fetch(window.monitorConfig.startUrl, {
+                method: "POST",
+                cache: "no-store",
+            });
+            const data = await response.json().catch(() => null);
+            if (!response.ok || !data || !data.ok) {
+                throw new Error((data && data.error) || "Unable to start the external camera stream.");
+            }
+
+            stopBrowserStream(true);
+            setCameraPreviewMode(false);
+            if (videoFeed) {
+                videoFeed.src = `${window.monitorConfig.videoFeedUrl}?t=${Date.now()}`;
+            }
+            hideCameraBanner();
+            await loadInitialStatus();
+        } catch (error) {
+            console.error(error);
+            if (stateLabel) {
+                stateLabel.textContent = "External Camera Error";
+            }
+            if (stateDescription) {
+                stateDescription.textContent = error.message || "Unable to connect to the external stream.";
+            }
+            setCameraBanner(
+                "External Camera Error",
+                "Check the stream URL in camera settings and confirm the camera feed is reachable from this computer.",
+                true,
+            );
+        } finally {
+            startingCamera = false;
+            if (startCameraBtn) {
+                startCameraBtn.disabled = false;
+                startCameraBtn.textContent = monitorUsesBrowserCamera ? "Start Camera" : "Reconnect Stream";
+            }
+        }
+    };
+
     const startBrowserCamera = async () => {
         if (startingCamera) {
             return;
@@ -1017,7 +1077,11 @@
     if (startCameraBtn) {
         startCameraBtn.addEventListener("click", async () => {
             await unlockAlarmAudio();
-            startBrowserCamera();
+            if (monitorUsesBrowserCamera) {
+                startBrowserCamera();
+            } else {
+                startExternalCameraStream();
+            }
         });
     }
 
@@ -1030,11 +1094,24 @@
     updateClock();
     setInterval(updateClock, 1000);
     loadInitialStatus();
-    startBrowserCamera();
+    startStatusPolling();
+    if (monitorUsesBrowserCamera) {
+        startBrowserCamera();
+    } else {
+        setCameraPreviewMode(false);
+        if (startCameraBtn) {
+            startCameraBtn.textContent = "Reconnect Stream";
+        }
+        startExternalCameraStream();
+    }
 
     window.addEventListener("beforeunload", () => {
         unlockOrientation();
         stopBrowserStream();
+        if (statusPollTimer) {
+            window.clearInterval(statusPollTimer);
+            statusPollTimer = null;
+        }
         navigator.sendBeacon(window.monitorConfig.stopUrl);
     });
 })();

@@ -106,7 +106,9 @@ window.monitorConfig = {
     startUrl: "{{ url_for('api_start_monitor') }}",
     stopUrl: "{{ url_for('api_stop_monitor') }}",
     statusUrl: "{{ url_for('api_status') }}",
-    frameUrl: "{{ url_for('api_frame') }}"
+    frameUrl: "{{ url_for('api_frame') }}",
+    videoFeedUrl: "{{ url_for('video_feed') }}",
+    cameraMode: "{{ camera_mode }}"
 };
 </script>
 {% endblock %}

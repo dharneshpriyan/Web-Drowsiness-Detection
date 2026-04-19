@@ -725,6 +725,14 @@ def load_camera_data():
     )
 
 
+def resolve_camera_mode(camera_data=None):
+    data = camera_data or load_camera_data()
+    camera_source = str(data.get("camera_source", "0")).strip()
+    if camera_source == "0":
+        return "laptop", camera_source
+    return "external", camera_source
+
+
 def load_users_data():
     return load_json(users_file(), {})
 
@@ -799,8 +807,12 @@ def start_monitor():
         detector.stop()
         detector.reset_runtime_state()
         detector.apply_admin_settings(load_admin_settings())
-        detector.camera_ready = False
-        detector.last_error = "Waiting for browser camera permission and frames."
+        camera_mode, _ = resolve_camera_mode()
+        if camera_mode == "external":
+            detector.start()
+        else:
+            detector.camera_ready = False
+            detector.last_error = "Waiting for browser camera permission and frames."
         update_metrics_snapshot(detector)
         monitor_running = True
 
@@ -1175,10 +1187,12 @@ def save_camera_settings():
 def monitor():
     if "user" not in session:
         return redirect(url_for("login"))
+    camera_mode, _ = resolve_camera_mode()
     return render_template(
         "monitor.html",
         page_title="Live Monitor",
         active_page="monitor",
+        camera_mode=camera_mode,
     )
 
 
