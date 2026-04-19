@@ -1,6 +1,20 @@
 (() => {
     const topbar = document.getElementById("topbar");
+    const mobileNavToggle = document.getElementById("mobileNavToggle");
+    const siteNav = document.getElementById("siteNav");
     let lastScrollY = window.scrollY;
+    const mobileNavMedia = window.matchMedia("(max-width: 760px)");
+
+    const setMobileNavState = (open) => {
+        if (!topbar || !mobileNavToggle || !siteNav) {
+            return;
+        }
+
+        const isOpen = Boolean(open) && mobileNavMedia.matches;
+        topbar.classList.toggle("mobile-nav-open", isOpen);
+        mobileNavToggle.setAttribute("aria-expanded", String(isOpen));
+        mobileNavToggle.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
+    };
 
     const syncTopbar = () => {
         if (!topbar) {
@@ -10,12 +24,52 @@
         const currentScrollY = window.scrollY;
         const scrollingDown = currentScrollY > lastScrollY;
         topbar.classList.toggle("topbar-scrolled", currentScrollY > 18);
-        topbar.classList.toggle("topbar-hidden", scrollingDown && currentScrollY > 140);
+        topbar.classList.toggle("topbar-hidden", scrollingDown && currentScrollY > 140 && !topbar.classList.contains("mobile-nav-open"));
         lastScrollY = currentScrollY;
     };
 
     syncTopbar();
     window.addEventListener("scroll", syncTopbar, { passive: true });
+
+    if (mobileNavToggle && topbar && siteNav) {
+        mobileNavToggle.addEventListener("click", () => {
+            setMobileNavState(!topbar.classList.contains("mobile-nav-open"));
+        });
+
+        siteNav.querySelectorAll("a, button").forEach((item) => {
+            item.addEventListener("click", () => {
+                setMobileNavState(false);
+            });
+        });
+
+        document.addEventListener("click", (event) => {
+            if (!mobileNavMedia.matches || !topbar.classList.contains("mobile-nav-open")) {
+                return;
+            }
+
+            if (!topbar.contains(event.target)) {
+                setMobileNavState(false);
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && topbar.classList.contains("mobile-nav-open")) {
+                setMobileNavState(false);
+            }
+        });
+
+        const handleMobileNavViewport = (event) => {
+            if (!event.matches) {
+                setMobileNavState(false);
+            }
+        };
+
+        if (typeof mobileNavMedia.addEventListener === "function") {
+            mobileNavMedia.addEventListener("change", handleMobileNavViewport);
+        } else if (typeof mobileNavMedia.addListener === "function") {
+            mobileNavMedia.addListener(handleMobileNavViewport);
+        }
+    }
 
     document.querySelectorAll("[data-switch-root]").forEach((root) => {
         const inputId = root.getAttribute("data-input-id");

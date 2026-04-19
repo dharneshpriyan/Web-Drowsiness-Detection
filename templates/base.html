@@ -35,7 +35,20 @@
           </span>
         </a>
 
-        <nav class="nav">
+        <button
+          type="button"
+          class="mobile-nav-toggle"
+          id="mobileNavToggle"
+          aria-expanded="false"
+          aria-controls="siteNav"
+          aria-label="Open navigation menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <nav class="nav" id="siteNav">
           <a
             class="{% if active_page == 'home' %}active{% endif %}"
             href="{{ url_for('index') }}"
