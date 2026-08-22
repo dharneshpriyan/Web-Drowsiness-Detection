@@ -4,7 +4,7 @@
     "head_threshold": 20.0,
     "eye_drowsy_seconds": 1.0,
     "alarm_delay": 0.0,
-    "theme": "oceanic",
+    "theme": "sunset",
     "auto_start_monitor": false,
     "show_landmarks": true,
     "whatsapp_alert_repeat_count": 3,

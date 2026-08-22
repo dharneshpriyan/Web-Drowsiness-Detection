@@ -34,19 +34,31 @@
           data-loading-target="{{ url_for('monitor') }}"
           >Start Detection</a
         >
-        <a class="btn btn-secondary hero-btn hero-btn-story" href="{{ url_for('about') }}"
+        <a
+          class="btn btn-secondary hero-btn hero-btn-story"
+          href="{{ url_for('about') }}"
           >View Project Story</a
         >
-        <a class="btn btn-secondary hero-btn hero-btn-download" href="{{ url_for('download_page') }}"
+        <a
+          class="btn btn-secondary hero-btn hero-btn-download"
+          href="{{ url_for('download_page') }}"
           >Download App</a
         >
       </div>
 
       <div class="settings-launch-row">
-        <button class="btn btn-secondary hero-btn hero-btn-camera" type="button" data-settings-target="camera-settings">
+        <button
+          class="btn btn-secondary hero-btn hero-btn-camera"
+          type="button"
+          data-settings-target="camera-settings"
+        >
           Connect Camera
         </button>
-        <button class="btn btn-secondary hero-btn hero-btn-alert" type="button" data-settings-target="whatsapp-alert">
+        <button
+          class="btn btn-secondary hero-btn hero-btn-alert"
+          type="button"
+          data-settings-target="whatsapp-alert"
+        >
           WhatsApp Alert
         </button>
       </div>
@@ -76,26 +88,56 @@
       </div>
 
       <div class="panel-copy">
-        <p class="eyebrow">Project Identity</p>
+        <p class="eyebrow">Project By</p>
         <h3>Web Drowsiness Detection</h3>
-        <p>Final Year Project | Computer Vision | Safety Monitoring</p>
-        <p class="college">
-          Sri Raaja Raajan College of Engineering & Technology
-        </p>
+        <p>Single-Author Project | Computer Vision | Safety Monitoring</p>
+        <p class="college">Developed by {{ project_author }}</p>
       </div>
 
       <div class="team-strip">
         <div class="team-strip-head">
-          <span>Project Team</span>
-          <small>Core Builders</small>
+          <span>Project Ownership</span>
+          <small>Built developer</small>
         </div>
         <div class="team-pills team-pills-grid">
           {% for member in team_members %}
           <article class="team-member-card">
-            <span class="team-member-role">Team Member {{ loop.index }}</span>
+            <span class="team-member-role">Project Lead</span>
             <strong>{{ member }}</strong>
           </article>
           {% endfor %}
+        </div>
+        <div
+          class="team-pills"
+          style="
+            margin-top: 0.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+          "
+        >
+          <a
+            class="page-badge"
+            href="{{ portfolio_url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Portfolio</a
+          >
+          <a
+            class="page-badge"
+            href="{{ linkedin_url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            >LinkedIn</a
+          >
+          <a
+            class="page-badge"
+            href="{{ github_url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub</a
+          >
+          <a class="page-badge" href="mailto:{{ project_email }}">Email</a>
         </div>
       </div>
     </aside>
@@ -187,8 +229,20 @@
 
 <div class="settings-modal-backdrop" id="settingsModalBackdrop" hidden>
   <div class="settings-modal-shell">
-    <article class="card form-card settings-modal settings-panel is-hidden" id="camera-settings" data-settings-panel="camera-settings" role="dialog" aria-modal="true" aria-labelledby="cameraSettingsTitle">
-      <button class="settings-modal-close" type="button" data-settings-close aria-label="Close camera settings">
+    <article
+      class="card form-card settings-modal settings-panel is-hidden"
+      id="camera-settings"
+      data-settings-panel="camera-settings"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cameraSettingsTitle"
+    >
+      <button
+        class="settings-modal-close"
+        type="button"
+        data-settings-close
+        aria-label="Close camera settings"
+      >
         &times;
       </button>
       <div class="panel-shine"></div>
@@ -203,14 +257,20 @@
           value="{% if is_laptop_camera %}laptop{% else %}external{% endif %}"
         />
 
-        <div class="option-switch" data-switch-root data-input-id="cameraModeInput">
+        <div
+          class="option-switch"
+          data-switch-root
+          data-input-id="cameraModeInput"
+        >
           <button
             type="button"
             class="option-pill {% if is_laptop_camera %}active{% endif %}"
             data-switch-value="laptop"
           >
             <span class="option-pill-title">Device Camera</span>
-            <span class="option-pill-copy">Use the system webcam directly.</span>
+            <span class="option-pill-copy"
+              >Use the system webcam directly.</span
+            >
           </button>
           <button
             type="button"
@@ -218,7 +278,9 @@
             data-switch-value="external"
           >
             <span class="option-pill-title">External Stream</span>
-            <span class="option-pill-copy">Use IP camera or streaming URL.</span>
+            <span class="option-pill-copy"
+              >Use IP camera or streaming URL.</span
+            >
           </button>
         </div>
 
@@ -239,8 +301,20 @@
       </form>
     </article>
 
-    <article class="card form-card settings-modal settings-panel is-hidden" id="whatsapp-alert" data-settings-panel="whatsapp-alert" role="dialog" aria-modal="true" aria-labelledby="whatsappSettingsTitle">
-      <button class="settings-modal-close" type="button" data-settings-close aria-label="Close WhatsApp settings">
+    <article
+      class="card form-card settings-modal settings-panel is-hidden"
+      id="whatsapp-alert"
+      data-settings-panel="whatsapp-alert"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="whatsappSettingsTitle"
+    >
+      <button
+        class="settings-modal-close"
+        type="button"
+        data-settings-close
+        aria-label="Close WhatsApp settings"
+      >
         &times;
       </button>
       <div class="panel-shine"></div>
@@ -257,14 +331,20 @@
           value="{% if alert_data.enabled %}on{% else %}off{% endif %}"
         />
 
-        <div class="option-switch" data-switch-root data-input-id="whatsappEnabledInput">
+        <div
+          class="option-switch"
+          data-switch-root
+          data-input-id="whatsappEnabledInput"
+        >
           <button
             type="button"
             class="option-pill {% if alert_data.enabled %}active{% endif %}"
             data-switch-value="on"
           >
             <span class="option-pill-title">Alerts On</span>
-            <span class="option-pill-copy">Send escalation after repeated drowsiness.</span>
+            <span class="option-pill-copy"
+              >Send escalation after repeated drowsiness.</span
+            >
           </button>
           <button
             type="button"
@@ -272,7 +352,9 @@
             data-switch-value="off"
           >
             <span class="option-pill-title">Alerts Off</span>
-            <span class="option-pill-copy">Keep monitoring without WhatsApp escalation.</span>
+            <span class="option-pill-copy"
+              >Keep monitoring without WhatsApp escalation.</span
+            >
           </button>
         </div>
 
@@ -287,7 +369,9 @@
           <p class="field-note">Include country code with no spaces.</p>
         </div>
 
-        <button class="btn btn-primary btn-premium" type="submit">Save Alert Settings</button>
+        <button class="btn btn-primary btn-premium" type="submit">
+          Save Alert Settings
+        </button>
       </form>
     </article>
   </div>

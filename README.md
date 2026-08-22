@@ -1,8 +1,19 @@
 # Web Drowsiness Detection
 
-A web-based driver monitoring system that detects drowsiness, yawning, and distraction in real time using computer vision.
+Developed by Dharnesh Priyan J.
+
+A personal portfolio project for a web-based driver monitoring system that detects drowsiness, yawning, and distraction in real time using computer vision.
 
 The app captures frames from the browser camera, processes them on the Python backend, and shows a live monitoring dashboard with status updates, attention scoring, alerts, driver login, and operator settings.
+
+## Portfolio & Contact
+
+- Portfolio: https://dharnesh-portfolio.vercel.app
+- LinkedIn: https://www.linkedin.com/in/dharnesh-priyan
+- GitHub: https://github.com/dharneshpriyan
+- Email: dharneshpriyan.j@gmail.com
+
+This project is presented as a single-author project for professional portfolio and resume purposes.
 
 ## Features
 

@@ -24,27 +24,32 @@
             </p>
         </article>
         <article class="card detail-card">
-            <p class="eyebrow">Academic Context</p>
-            <h3>Final year engineering project</h3>
+            <p class="eyebrow">Project Context</p>
+            <h3>Independent portfolio project</h3>
             <p>
-                Built as a professional presentation of computer vision concepts, real-time inference,
-                and human safety monitoring in a practical application scenario.
+                Designed and implemented as a personal computer vision initiative, showcasing real-time
+                inference, operator workflow design, and practical safety monitoring for a modern web platform.
             </p>
         </article>
     </section>
 
     <section class="content-band">
         <article class="card narrative-card">
-            <p class="eyebrow">Institution</p>
-            <h2>Sri Raaja Raajan College of Engineering & Technology</h2>
-            <p class="college">CSE Final Year Project</p>
+            <p class="eyebrow">Project Owner</p>
+            <h2>{{ project_author }}</h2>
             <div class="about-team-list">
                 {% for member in team_members %}
                     <article class="team-member-card about-team-card">
-                        <span class="team-member-role">Student {{ loop.index }}</span>
+                        <span class="team-member-role">Project Lead</span>
                         <strong>{{ member }}</strong>
                     </article>
                 {% endfor %}
+            </div>
+            <div class="team-pills" style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                <a class="page-badge" href="{{ portfolio_url }}" target="_blank" rel="noopener noreferrer">Portfolio</a>
+                <a class="page-badge" href="{{ linkedin_url }}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                <a class="page-badge" href="{{ github_url }}" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a class="page-badge" href="mailto:{{ project_email }}">Email</a>
             </div>
         </article>
         <article class="card screenshot-stage preview-stage">

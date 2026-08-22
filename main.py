@@ -653,12 +653,12 @@ app.secret_key = "web-drowsiness-detection"
 ADMIN_USERNAME = "sparrow"
 ADMIN_PASSWORD = "4321"
 
-TEAM_MEMBERS = [
-    "Bharath R",
-    "Subalakshmi J",
-    "Ushamalini K",
-    "Dharnesh Priyan J",
-]
+PROJECT_AUTHOR = "Dharnesh Priyan J"
+PROJECT_EMAIL = "dharneshpriyan.j@gmail.com"
+PORTFOLIO_URL = "https://dharnesh-portfolio.vercel.app/"
+LINKEDIN_URL = "https://www.linkedin.com/in/dharnesh-priyan"
+GITHUB_URL = "https://github.com/dharneshpriyan"
+TEAM_MEMBERS = [PROJECT_AUTHOR]
 
 engine_lock = threading.Lock()
 engine = None
@@ -693,6 +693,11 @@ def inject_navigation():
     admin_settings = load_admin_settings()
     return {
         "team_members": TEAM_MEMBERS,
+        "project_author": PROJECT_AUTHOR,
+        "project_email": PROJECT_EMAIL,
+        "portfolio_url": PORTFOLIO_URL,
+        "linkedin_url": LINKEDIN_URL,
+        "github_url": GITHUB_URL,
         "active_theme": admin_settings.get("theme", "oceanic"),
         "is_admin": bool(session.get("is_admin")),
     }
